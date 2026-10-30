@@ -5,7 +5,7 @@ import { formatIngredientQty } from '../../core/units';
 import { INGREDIENTS } from '../../data';
 import { BUILTIN_RECIPE_IDS, INGREDIENTS_BY_ID } from '../../state/derive';
 import { useStore } from '../../state/store';
-import { Empty, Segmented } from '../components';
+import { ConfirmBox, Empty, Segmented } from '../components';
 import { useRecipesById } from '../hooks';
 import { Icon } from '../Icon';
 import { Link, navigate } from '../router';
@@ -29,6 +29,7 @@ export function RecipeDetailPage({ id }: { id: string }) {
   const [persons, setPersons] = useState<Persons>(settingsPersons);
   const preferredPasta = useStore((s) => s.settings.preferredPasta);
   const [pasta, setPasta] = useState(preferredPasta);
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   if (!recipe) {
     return (
@@ -83,20 +84,24 @@ export function RecipeDetailPage({ id }: { id: string }) {
             <Icon name="edit" size={18} /> Bearbeiten
           </Link>
           {(isEdited || !isBuiltin) && (
-            <button
-              className="btn small"
-              onClick={() => {
-                const question = isBuiltin ? 'Änderungen verwerfen und Originalrezept wiederherstellen?' : 'Eigenes Rezept löschen?';
-                if (window.confirm(question)) {
-                  deleteUserRecipe(recipe.id);
-                  if (!isBuiltin) navigate('/rezepte');
-                }
-              }}
-            >
+            <button className="btn small" onClick={() => setConfirmDelete(true)}>
               <Icon name="trash" size={18} /> {isBuiltin ? 'Original' : 'Löschen'}
             </button>
           )}
         </div>
+        {confirmDelete && (
+          <ConfirmBox
+            danger
+            question={isBuiltin ? 'Deine Änderungen verwerfen und das Originalrezept wiederherstellen?' : 'Dieses eigene Rezept löschen?'}
+            confirmLabel={isBuiltin ? 'Original wiederherstellen' : 'Löschen'}
+            onConfirm={() => {
+              deleteUserRecipe(recipe.id);
+              setConfirmDelete(false);
+              if (!isBuiltin) navigate('/rezepte');
+            }}
+            onCancel={() => setConfirmDelete(false)}
+          />
+        )}
         {isFavorite && (
           <p className="tiny muted no-margin">♥ Kommt regelmässig in deinen Wochenplan – was länger nicht dran war, zuerst.</p>
         )}

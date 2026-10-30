@@ -4,7 +4,7 @@ import { choiceFor, type ShoppingItem, type ShoppingMode } from '../../core/shop
 import { CATEGORIES, CATEGORY_LABELS } from '../../core/types';
 import { formatCHF, formatQty } from '../../core/units';
 import { useStore } from '../../state/store';
-import { Checkbox, Empty } from '../components';
+import { Checkbox, ConfirmBox, Empty } from '../components';
 import { usePlanData } from '../hooks';
 import { Link } from '../router';
 
@@ -18,6 +18,7 @@ export function ShoppingPage() {
   const { shopping } = usePlanData();
   const [selected, setSelected] = useState<ShoppingMode | null>(null);
   const [showPantry, setShowPantry] = useState(false);
+  const [confirming, setConfirming] = useState(false);
 
   if (!plan || !shopping) {
     return (
@@ -36,11 +37,6 @@ export function ShoppingPage() {
   const total = mode === 'split' ? shopping.totals.split : shopping.totals[mode];
   const done = toBuy.filter((i) => checked[i.ingredient.id]).length;
 
-  const finish = () => {
-    if (window.confirm(`Einkauf für ${formatCHF(total)} abschliessen? Die gekauften Packungen kommen in die Vorräte.`)) {
-      completeShopping(mode);
-    }
-  };
 
   return (
     <div className="stack">
@@ -110,9 +106,21 @@ export function ShoppingPage() {
             );
           })}
           <div className="finish-bar">
-            <button className="btn primary block" onClick={finish}>
-              Einkauf erledigt · {formatCHF(total)}
-            </button>
+            {confirming ? (
+              <ConfirmBox
+                question={<>Einkauf für <strong>{formatCHF(total)}</strong> abschliessen? Die gekauften Packungen kommen in die Vorräte.</>}
+                confirmLabel="Ja, abschliessen"
+                onConfirm={() => {
+                  completeShopping(mode);
+                  setConfirming(false);
+                }}
+                onCancel={() => setConfirming(false)}
+              />
+            ) : (
+              <button className="btn primary block" onClick={() => setConfirming(true)}>
+                Einkauf erledigt · {formatCHF(total)}
+              </button>
+            )}
           </div>
         </>
       )}

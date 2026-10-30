@@ -72,6 +72,35 @@ export function Checkbox({ checked, onChange, label }: { checked: boolean; onCha
   );
 }
 
+/** Bestätigung direkt auf der Seite (window.confirm ist nicht überall verfügbar). */
+export function ConfirmBox({
+  question,
+  confirmLabel,
+  danger = false,
+  onConfirm,
+  onCancel,
+}: {
+  question: ReactNode;
+  confirmLabel: string;
+  danger?: boolean;
+  onConfirm: () => void;
+  onCancel: () => void;
+}) {
+  return (
+    <div className={`alert ${danger ? 'danger' : 'info'} stack-sm`} role="alertdialog" aria-live="polite">
+      <div>{question}</div>
+      <div className="row wrap">
+        <button type="button" className={`btn small ${danger ? 'danger' : 'primary'}`} onClick={onConfirm}>
+          {confirmLabel}
+        </button>
+        <button type="button" className="btn small" onClick={onCancel}>
+          Abbrechen
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export function Empty({ title, children }: { title: string; children?: ReactNode }) {
   return (
     <div className="card empty">

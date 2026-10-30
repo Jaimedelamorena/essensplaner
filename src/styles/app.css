@@ -1,6 +1,7 @@
-/* ---------- Farben & Grundwerte (hell / dunkel) ---------- */
+/* ---------- Farben & Grundwerte ----------
+   Hell auf :root, Dunkel per Systemeinstellung oder data-theme="dark" (z. B. im Claude-Viewer). */
 :root {
-  color-scheme: light dark;
+  color-scheme: light;
   --bg: #f5f6f3;
   --surface: #ffffff;
   --surface-2: #edf0eb;
@@ -17,13 +18,18 @@
   --warn-soft: #fff3d1;
   --info: #1d5f8f;
   --info-soft: #e5f1fa;
-  --radius: 16px;
+  --heart: #c92a5c;
+  --backdrop: rgb(16 20 18 / 0.4);
   --shadow: 0 1px 2px rgb(0 0 0 / 0.05), 0 2px 10px rgb(0 0 0 / 0.04);
+  --radius: 16px;
   --nav-height: 64px;
+  /* Abstand zu Kerbe/Systemleisten am Handy */
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --bg: #101412;
     --surface: #191f1c;
     --surface-2: #232b27;
@@ -40,8 +46,34 @@
     --warn-soft: #392f1b;
     --info: #8cc7f0;
     --info-soft: #1b2c39;
+    --heart: #ff7aa2;
+    --backdrop: rgb(0 0 0 / 0.55);
     --shadow: none;
+    color-scheme: dark;
   }
+}
+
+:root[data-theme="dark"] {
+  --bg: #101412;
+  --surface: #191f1c;
+  --surface-2: #232b27;
+  --text: #e6ece8;
+  --muted: #9aa8a1;
+  --border: #2d3732;
+  --primary: #5cbd85;
+  --primary-strong: #86d6a6;
+  --primary-soft: #1d3527;
+  --on-primary: #0b1710;
+  --danger: #ff8f85;
+  --danger-soft: #3b201e;
+  --warn: #f1c86a;
+  --warn-soft: #392f1b;
+  --info: #8cc7f0;
+  --info-soft: #1b2c39;
+  --heart: #ff7aa2;
+  --backdrop: rgb(0 0 0 / 0.55);
+  --shadow: none;
+  color-scheme: dark;
 }
 
 * {
@@ -58,6 +90,15 @@ body {
   color: var(--text);
   font: 16px/1.45 system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   -webkit-tap-highlight-color: transparent;
+}
+/* Band über der fixierten Kopfzeile (unter Kerbe/Statusleiste) */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0 0 auto;
+  height: env(safe-area-inset-top, 0px);
+  z-index: 10;
+  background: var(--bg);
 }
 
 h1 {
@@ -91,20 +132,24 @@ ol {
 /* ---------- Layout ---------- */
 .topbar {
   position: sticky;
-  top: 0;
+  top: env(safe-area-inset-top, 0px);
   z-index: 10;
   display: flex;
   align-items: center;
   justify-content: space-between;
   max-width: 760px;
   margin: 0 auto;
-  padding: calc(10px + env(safe-area-inset-top)) 16px 10px;
+  padding-block: 10px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
   background: var(--bg);
 }
 .app {
   max-width: 760px;
   margin: 0 auto;
-  padding: 4px 16px calc(var(--nav-height) + 24px + env(safe-area-inset-bottom));
+  padding-block: 4px calc(var(--nav-height) + 24px + env(safe-area-inset-bottom, 0px));
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
 }
 .bottomnav {
   position: fixed;
@@ -116,7 +161,9 @@ ol {
   justify-content: center;
   background: var(--surface);
   border-top: 1px solid var(--border);
-  padding-bottom: env(safe-area-inset-bottom);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
 }
 .bottomnav a {
   flex: 1;
@@ -504,7 +551,7 @@ input[type='checkbox'] {
   position: fixed;
   inset: 0;
   z-index: 50;
-  background: rgb(0 0 0 / 0.4);
+  background: var(--backdrop);
   display: flex;
   align-items: flex-end;
   justify-content: center;
@@ -516,7 +563,9 @@ input[type='checkbox'] {
   max-height: 85vh;
   overflow: auto;
   border-radius: 20px 20px 0 0;
-  padding: 12px 16px calc(16px + env(safe-area-inset-bottom));
+  padding-block: 12px calc(16px + env(safe-area-inset-bottom, 0px));
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
 }
 .sheet-head {
   display: flex;
@@ -618,7 +667,7 @@ input[type='checkbox'] {
   color: var(--muted);
 }
 .like.on {
-  color: #d6336c;
+  color: var(--heart);
 }
 .pasta-pick {
   display: inline-flex;
@@ -752,7 +801,7 @@ input[type='checkbox'] {
   font-weight: 650;
 }
 .like-mark {
-  color: #d6336c;
+  color: var(--heart);
 }
 .back-link {
   display: inline-flex;

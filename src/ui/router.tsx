@@ -1,19 +1,49 @@
-// Minimaler Hash-Router: funktioniert auf GitHub Pages ohne Server-Konfiguration.
-import { useSyncExternalStore, type AnchorHTMLAttributes, type ReactNode } from 'react';
+// Minimaler Router: die aktuelle Seite lebt im Speicher und wird – wo möglich – im Hash gespiegelt
+// (#/einkauf). So funktioniert er auf GitHub Pages (mit Zurück-Taste) und auch eingebettet,
+// wo die Adresszeile Änderungen nicht übernimmt.
+import { useSyncExternalStore, type AnchorHTMLAttributes, type MouseEvent, type ReactNode } from 'react';
 
-const subscribe = (callback: () => void) => {
-  window.addEventListener('hashchange', callback);
-  return () => window.removeEventListener('hashchange', callback);
+const fromHash = () => {
+  try {
+    const hash = decodeURI(window.location.hash.replace(/^#/, ''));
+    return hash.startsWith('/') ? hash : '/';
+  } catch {
+    return '/';
+  }
 };
 
-const currentPath = () => decodeURI(window.location.hash.replace(/^#/, '')) || '/';
+let current = typeof window === 'undefined' ? '/' : fromHash();
+const listeners = new Set<() => void>();
+const emit = () => listeners.forEach((l) => l());
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('hashchange', () => {
+    const next = fromHash();
+    if (next !== current) {
+      current = next;
+      emit();
+    }
+  });
+}
+
+const subscribe = (callback: () => void) => {
+  listeners.add(callback);
+  return () => listeners.delete(callback);
+};
 
 export function usePath(): string {
-  return useSyncExternalStore(subscribe, currentPath, () => '/');
+  return useSyncExternalStore(subscribe, () => current, () => '/');
 }
 
 export function navigate(to: string): void {
-  window.location.hash = to;
+  if (to === current) return;
+  current = to;
+  try {
+    window.location.hash = to;
+  } catch {
+    /* Hash nicht verfügbar – die Seite wechselt trotzdem */
+  }
+  emit();
 }
 
 /** «/rezepte/:id» gegen «/rezepte/chili» → { id: 'chili' } */
@@ -34,9 +64,15 @@ interface LinkProps extends AnchorHTMLAttributes<HTMLAnchorElement> {
   children: ReactNode;
 }
 
-export function Link({ to, children, ...rest }: LinkProps) {
+export function Link({ to, children, onClick, ...rest }: LinkProps) {
+  const handle = (e: MouseEvent<HTMLAnchorElement>) => {
+    onClick?.(e);
+    if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    e.preventDefault();
+    navigate(to);
+  };
   return (
-    <a href={`#${to}`} {...rest}>
+    <a href={`#${to}`} onClick={handle} {...rest}>
       {children}
     </a>
   );

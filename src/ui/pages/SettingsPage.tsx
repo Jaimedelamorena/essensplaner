@@ -5,7 +5,7 @@ import { CATEGORIES, CATEGORY_LABELS, type NutritionGoal, type Persons, type Wee
 import { INGREDIENTS } from '../../data';
 import { INGREDIENTS_BY_ID } from '../../state/derive';
 import { exportJSON, useStore } from '../../state/store';
-import { Segmented } from '../components';
+import { ConfirmBox, Segmented } from '../components';
 import { Icon } from '../Icon';
 
 export function SettingsPage() {
@@ -14,16 +14,36 @@ export function SettingsPage() {
   const fileInput = useRef<HTMLInputElement>(null);
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
   const [noGoPick, setNoGoPick] = useState('');
+  const [exported, setExported] = useState<string | null>(null);
+  const [pasted, setPasted] = useState('');
+  const [confirmReset, setConfirmReset] = useState(false);
+  const exportArea = useRef<HTMLTextAreaElement>(null);
 
-  const download = () => {
-    const blob = new Blob([exportJSON()], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `essensplaner-backup-${new Date().toISOString().slice(0, 10)}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-    setMessage({ ok: true, text: 'Backup heruntergeladen.' });
+  // Kopieren klappt überall; ein Datei-Download ist in manchen Umgebungen (z. B. eingebettet) gesperrt.
+  const copyBackup = async () => {
+    const text = exported ?? exportJSON();
+    setExported(text);
+    try {
+      await navigator.clipboard.writeText(text);
+      setMessage({ ok: true, text: 'Backup kopiert. Auf dem anderen Gerät unter «Backup einfügen» einfügen.' });
+    } catch {
+      exportArea.current?.select();
+      setMessage({ ok: true, text: 'Text ist markiert – mit Strg+C bzw. «Kopieren» übernehmen.' });
+    }
+  };
+
+  const saveFile = () => {
+    try {
+      const blob = new Blob([exported ?? exportJSON()], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `essensplaner-backup-${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      setMessage({ ok: false, text: 'Speichern als Datei geht hier nicht – nutze «Kopieren».' });
+    }
   };
 
   const upload = async (file: File) => {
@@ -205,11 +225,14 @@ export function SettingsPage() {
           zwischen Laptop und Handy.
         </p>
         <div className="row wrap">
-          <button className="btn" onClick={download}>
-            <Icon name="download" size={18} /> Backup exportieren
+          <button className="btn" onClick={() => void copyBackup()}>
+            <Icon name="download" size={18} /> Backup kopieren
+          </button>
+          <button className="btn" onClick={saveFile}>
+            Als Datei speichern
           </button>
           <button className="btn" onClick={() => fileInput.current?.click()}>
-            <Icon name="upload" size={18} /> Backup importieren
+            <Icon name="upload" size={18} /> Backup-Datei öffnen
           </button>
           <input
             ref={fileInput}
@@ -223,18 +246,51 @@ export function SettingsPage() {
             }}
           />
         </div>
-        {message && <div className={`alert ${message.ok ? 'info' : 'danger'}`}>{message.text}</div>}
+        {exported && (
+          <label className="field">
+            <span>Dein Backup (markieren und kopieren)</span>
+            <textarea id="backup-export" ref={exportArea} readOnly rows={4} value={exported} onFocus={(e) => e.target.select()} />
+          </label>
+        )}
+        <label className="field">
+          <span>Backup einfügen</span>
+          <textarea
+            id="backup-import"
+            rows={3}
+            placeholder="Kopiertes Backup hier einfügen …"
+            value={pasted}
+            onChange={(e) => setPasted(e.target.value)}
+          />
+        </label>
         <button
-          className="btn danger"
+          className="btn"
+          disabled={!pasted.trim()}
           onClick={() => {
-            if (window.confirm('Wirklich alles löschen? Plan, Vorräte, eigene Rezepte und angepasste Preise gehen verloren.')) {
-              resetAll();
-              setMessage({ ok: true, text: 'Alles zurückgesetzt.' });
-            }
+            const error = importData(pasted);
+            setMessage(error ? { ok: false, text: error } : { ok: true, text: 'Backup importiert.' });
+            if (!error) setPasted('');
           }}
         >
-          <Icon name="trash" size={18} /> Alles zurücksetzen
+          Eingefügtes Backup übernehmen
         </button>
+        {message && <div className={`alert ${message.ok ? 'info' : 'danger'}`}>{message.text}</div>}
+        {confirmReset ? (
+          <ConfirmBox
+            danger
+            question="Wirklich alles löschen? Plan, Vorräte, eigene Rezepte und angepasste Preise gehen verloren."
+            confirmLabel="Alles löschen"
+            onConfirm={() => {
+              resetAll();
+              setConfirmReset(false);
+              setMessage({ ok: true, text: 'Alles zurückgesetzt.' });
+            }}
+            onCancel={() => setConfirmReset(false)}
+          />
+        ) : (
+          <button className="btn danger" onClick={() => setConfirmReset(true)}>
+            <Icon name="trash" size={18} /> Alles zurücksetzen
+          </button>
+        )}
       </section>
     </div>
   );

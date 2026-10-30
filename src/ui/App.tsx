@@ -47,7 +47,7 @@ export function App() {
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    document.title = `${title} · Essensplaner`;
+    document.title = `${title} · Essensplaner St. Gallen`;
   }, [path, title]);
 
   return (
