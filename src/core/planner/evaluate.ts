@@ -1,6 +1,7 @@
 import { bestPacks, cheapestUnitPrice, productsFor, round2 } from '../pricing';
 import { portionsFor } from '../plan';
-import type { Ingredient, Persons, Product, Recipe, Slot, Store } from '../types';
+import { effectiveIngredients, isMeatMeal, nutritionFor } from '../recipes';
+import type { Ingredient, NutritionGoal, Persons, Product, Recipe, Slot, Store } from '../types';
 
 export interface PlannerContext {
   recipesById: Map<string, Recipe>;
@@ -15,11 +16,18 @@ export interface PlannerContext {
   /** Bereits bezahlter Einkauf dieser Woche (nach «Einkauf erledigt»). */
   alreadySpent: number;
   favorites: Set<string>;
+  /** Bonus pro Lieblingsrezept – höher, je länger es nicht mehr im Plan war. */
+  favoriteBonus: Map<string, number>;
+  /** So viele Lieblingsrezepte sollen mindestens in der Woche vorkommen. */
+  favoriteTarget: number;
   lastWeek: Set<string>;
+  minMeatMeals: number;
+  nutritionGoal: NutritionGoal;
   /** Kleiner Zufallsbonus pro Rezept → jede generierte Woche sieht anders aus. */
   jitter: Map<string, number>;
   unitPrice: Map<string, number>;
   packMemo: Map<string, { cost: number; qty: number }>;
+  slotMemo: Map<string, { meat: boolean; kcal: number; protein: number }>;
   /** Wie stark Kosten gegenüber Abwechslung zählen (wird erhöht, wenn das Budget knapp ist). */
   costWeight: number;
 }
@@ -31,6 +39,10 @@ export interface Evaluation {
   objective: number;
   /** Harte Verstösse: Rezept doppelt, Zutat verdorben bevor sie gebraucht wird. */
   violations: number;
+  /** Fleisch-Mahlzeiten (Reste-Mittag zählt mit). */
+  meatMeals: number;
+  /** Lieblingsrezepte im Plan. */
+  favorites: number;
 }
 
 /** Gewichte der Bewertung (CHF-äquivalent). */
@@ -38,12 +50,20 @@ export const WEIGHTS = {
   sameBaseInARow: 1.2,
   sameCuisineInARow: 0.4,
   lastWeek: 3,
-  favorite: 1.5,
   meatPerDay: 0.25,
+  /** pro Fleisch-Mahlzeit, bis das Minimum erreicht ist */
+  meatMeal: 3,
+  /** pro fehlender Fleisch-Mahlzeit, wenn das Minimum nicht mehr erreichbar ist */
+  meatMissing: 6,
+  favoriteMissing: 8,
+  /** Protein-Ziel: pro Gramm Protein über 30 g … */
+  proteinGram: 0.25,
+  /** … und pro kcal unter 600 */
+  kcal: 0.012,
   openedTooLong: 1,
   waste: 0.6,
-  pantryExpiring: 2.5,
-  pantryExpiringFlat: 1.5,
+  pantryExpiring: 4,
+  pantryExpiringFlat: 3,
   pantryOther: 0.3,
   violation: 50,
 };
@@ -65,6 +85,18 @@ function packFor(ctx: PlannerContext, ingredientId: string, store: Store, need: 
   return hit;
 }
 
+/** Fleisch? kcal? Protein? – für Rezept + Pasta-Tausch einmal berechnet. */
+function slotInfo(ctx: PlannerContext, recipe: Recipe, swaps: Slot['swaps']) {
+  const key = swaps ? `${recipe.id}|${JSON.stringify(swaps)}` : recipe.id;
+  let hit = ctx.slotMemo.get(key);
+  if (!hit) {
+    const items = effectiveIngredients(recipe, swaps, ctx.ingredientsById);
+    hit = { meat: isMeatMeal(items, ctx.ingredientsById), ...nutritionFor(recipe, swaps, ctx.ingredientsById) };
+    ctx.slotMemo.set(key, hit);
+  }
+  return hit;
+}
+
 /**
  * Bewertet einen (auch unvollständigen) Plan.
  * `costs` wird (falls übergeben) mit den Einkaufskosten pro Zutat gefüllt.
@@ -75,29 +107,41 @@ export function evaluate(slots: (Slot | null)[], ctx: PlannerContext, costs?: Ma
   const usedRecipes = new Set<string>();
   let bonus = 0;
   let violations = 0;
+  let meatMeals = 0;
+  let favorites = 0;
+  let empty = 0;
   let prev: Recipe | null = null;
 
   for (const slot of slots) {
     if (!slot) {
+      empty++;
       prev = null;
       continue;
     }
     const recipe = ctx.recipesById.get(slot.recipeId);
     if (!recipe) continue;
-    const fresh = slot.leftoverOf === undefined;
+    const info = slotInfo(ctx, recipe, slot.swaps);
+    if (info.meat) meatMeals++;
 
-    if (fresh) {
+    if (slot.leftoverOf === undefined) {
       if (usedRecipes.has(recipe.id)) violations++;
       usedRecipes.add(recipe.id);
-      if (ctx.favorites.has(recipe.id)) bonus += WEIGHTS.favorite;
-      if (ctx.lastWeek.has(recipe.id)) bonus -= WEIGHTS.lastWeek;
+      if (ctx.favorites.has(recipe.id)) {
+        favorites++;
+        bonus += ctx.favoriteBonus.get(recipe.id) ?? 0;
+      } else if (ctx.lastWeek.has(recipe.id)) {
+        bonus -= WEIGHTS.lastWeek;
+      }
       bonus += ctx.jitter.get(recipe.id) ?? 0;
+      if (ctx.nutritionGoal === 'protein') {
+        bonus += WEIGHTS.proteinGram * (info.protein - 30) + WEIGHTS.kcal * (600 - info.kcal);
+      }
       if (prev) {
         if (prev.base === recipe.base) bonus -= WEIGHTS.sameBaseInARow;
         if (prev.cuisine === recipe.cuisine) bonus -= WEIGHTS.sameCuisineInARow;
       }
       const portions = slot.cooked ? 0 : portionsFor(slot, ctx.persons);
-      for (const { id, qty } of recipe.ingredients) {
+      for (const { id, qty } of effectiveIngredients(recipe, slot.swaps, ctx.ingredientsById)) {
         const ing = ctx.ingredientsById.get(id);
         if (ing?.category === 'fleisch-fisch') bonus -= WEIGHTS.meatPerDay * slot.day;
         if (portions === 0) continue;
@@ -109,6 +153,13 @@ export function evaluate(slots: (Slot | null)[], ctx: PlannerContext, costs?: Ma
     }
     prev = recipe;
   }
+
+  // Fleisch: Bonus bis zum Minimum; Strafe erst, wenn es mit den freien Slots nicht mehr erreichbar ist.
+  bonus += WEIGHTS.meatMeal * Math.min(meatMeals, ctx.minMeatMeals);
+  const meatShort = ctx.minMeatMeals - meatMeals - empty;
+  if (meatShort > 0) bonus -= WEIGHTS.meatMissing * meatShort;
+  const favoriteShort = ctx.favoriteTarget - favorites - empty;
+  if (favoriteShort > 0) bonus -= WEIGHTS.favoriteMissing * favoriteShort;
 
   let coop = 0;
   let migros = 0;
@@ -154,5 +205,5 @@ export function evaluate(slots: (Slot | null)[], ctx: PlannerContext, costs?: Ma
   const total = round2(purchase + ctx.alreadySpent);
   const objective =
     -ctx.costWeight * total - WEIGHTS.waste * waste + pantryBonus + bonus - WEIGHTS.violation * violations;
-  return { total, objective, violations };
+  return { total, objective, violations, meatMeals, favorites };
 }

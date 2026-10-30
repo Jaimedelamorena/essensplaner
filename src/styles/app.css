@@ -609,6 +609,31 @@ input[type='checkbox'] {
   text-decoration: line-through;
   color: var(--muted);
 }
+.meal-actions {
+  display: flex;
+  flex-direction: column;
+  flex: none;
+}
+.like {
+  color: var(--muted);
+}
+.like.on {
+  color: #d6336c;
+}
+.pasta-pick {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+  max-width: 100%;
+}
+.pasta-pick select {
+  min-height: 34px;
+  width: auto;
+  max-width: 220px;
+  padding: 0 8px;
+  font-size: 14px;
+}
 
 /* ---------- Einkaufsliste ---------- */
 .store-compare {
@@ -726,8 +751,8 @@ input[type='checkbox'] {
 .recipe-name {
   font-weight: 650;
 }
-.star {
-  color: var(--warn);
+.like-mark {
+  color: #d6336c;
 }
 .back-link {
   display: inline-flex;

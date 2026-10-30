@@ -1,9 +1,11 @@
 import { useMemo, useState } from 'react';
 import { addDays, formatDate, todayISO, WEEKDAYS, weekdayOf } from '../../core/dates';
 import { alternativesForSlot } from '../../core/planner/generate';
-import type { Persons, Recipe, Slot } from '../../core/types';
+import { effectiveIngredients, isMeatMeal, nutritionFor, pastaIngredientOf, pastaTypes } from '../../core/recipes';
+import type { Persons, Recipe, Slot, WeekPlan } from '../../core/types';
 import { formatCHF } from '../../core/units';
-import { plannerInput } from '../../state/derive';
+import { INGREDIENTS } from '../../data';
+import { INGREDIENTS_BY_ID, plannerInput } from '../../state/derive';
 import { useStore } from '../../state/store';
 import { Checkbox, Empty, formatDelta, Segmented, Sheet } from '../components';
 import { usePlanData, useRecipesById } from '../hooks';
@@ -11,6 +13,35 @@ import { Icon } from '../Icon';
 import { Link } from '../router';
 
 const STORE_LABEL = { coop: 'Coop', migros: 'Migros', split: 'Coop + Migros' };
+const PASTA_TYPES = pastaTypes(INGREDIENTS);
+
+/** kcal, Protein und «Fleisch?» eines Slots – mit der gewählten Pasta-Sorte. */
+function slotInfo(slot: Slot, recipe: Recipe) {
+  return {
+    ...nutritionFor(recipe, slot.swaps, INGREDIENTS_BY_ID),
+    meat: isMeatMeal(effectiveIngredients(recipe, slot.swaps, INGREDIENTS_BY_ID), INGREDIENTS_BY_ID),
+  };
+}
+
+/** Wochenzahlen: Fleisch-Mahlzeiten, Ø Protein/kcal pro Mahlzeit, Lieblingsrezepte. */
+function planStats(plan: WeekPlan, recipesById: Map<string, Recipe>, favorites: string[]) {
+  let meat = 0;
+  let kcal = 0;
+  let protein = 0;
+  let count = 0;
+  let favs = 0;
+  for (const slot of plan.slots) {
+    const recipe = recipesById.get(slot.recipeId);
+    if (!recipe) continue;
+    const info = slotInfo(slot, recipe);
+    if (info.meat) meat++;
+    kcal += info.kcal;
+    protein += info.protein;
+    count++;
+    if (slot.leftoverOf === undefined && favorites.includes(recipe.id)) favs++;
+  }
+  return { meat, kcal: Math.round(kcal / Math.max(1, count)), protein: Math.round(protein / Math.max(1, count)), favorites: favs };
+}
 
 /** Kurz warten, damit der Lade-Hinweis sichtbar wird, bevor der Planer rechnet. */
 function useBusy() {
@@ -33,12 +64,14 @@ export function PlanPage() {
   const settings = useStore((s) => s.settings);
   const notice = useStore((s) => s.notice);
   const pantry = useStore((s) => s.pantry);
+  const favorites = useStore((s) => s.favorites);
   const { generateWeek, recalculate, setPersons, updateSettings, dismissNotice } = useStore.getState();
   const { shopping, cost } = usePlanData();
   const recipesById = useRecipesById();
   const { busy, run } = useBusy();
   const [swapIndex, setSwapIndex] = useState<number | null>(null);
   const hasStaples = pantry.some((p) => p.staple && p.qty > 0);
+  const stats = useMemo(() => (plan ? planStats(plan, recipesById, favorites) : null), [plan, recipesById, favorites]);
 
   const generateButton = (
     <button className="btn primary" disabled={!!busy} onClick={() => run('generate', generateWeek)}>
@@ -139,6 +172,31 @@ export function PlanPage() {
                     </div>
                   </div>
                 </div>
+                {stats && (
+                  <div className="badges">
+                    <span className={`badge ${stats.meat >= settings.minMeatMeals ? 'good' : 'warn'}`}>
+                      Fleisch {stats.meat}×{settings.minMeatMeals > 0 ? ` (Ziel ≥ ${settings.minMeatMeals})` : ''}
+                    </span>
+                    <span className="badge">
+                      Ø {stats.protein} g Protein · {stats.kcal} kcal pro Mahlzeit
+                    </span>
+                    {favorites.length > 0 && <span className="badge good">♥ {stats.favorites}× Lieblingsrezept</span>}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {stats && stats.meat < settings.minMeatMeals && !cost?.overBudget && (
+              <div className="alert info small">
+                Diese Woche nur {stats.meat} Fleisch-Mahlzeit{stats.meat === 1 ? '' : 'en'} statt {settings.minMeatMeals}: mehr
+                liegt im Budget nicht drin.{' '}
+                {!hasStaples ? (
+                  <>
+                    Erfasse deinen <Link to="/vorraete">Grundvorrat</Link>, dann bleibt mehr Geld fürs Fleisch.
+                  </>
+                ) : (
+                  <>Mit etwas mehr Budget klappt es.</>
+                )}
               </div>
             )}
 
@@ -210,12 +268,26 @@ function DayCard({
   onSwap: (index: number) => void;
 }) {
   const isToday = date === todayISO();
+  const total = slots.reduce(
+    (sum, slot) => {
+      const recipe = recipesById.get(slot.recipeId);
+      if (!recipe) return sum;
+      const info = slotInfo(slot, recipe);
+      return { kcal: sum.kcal + info.kcal, protein: sum.protein + info.protein };
+    },
+    { kcal: 0, protein: 0 },
+  );
   return (
     <section className={`card day ${isToday ? 'today' : ''}`}>
-      <h3>
-        {WEEKDAYS[weekdayOf(date)]} <span className="muted">{formatDate(date)}</span>
-        {isToday && <span className="badge good">heute</span>}
-      </h3>
+      <div className="row between baseline wrap">
+        <h3>
+          {WEEKDAYS[weekdayOf(date)]} <span className="muted">{formatDate(date)}</span>
+          {isToday && <span className="badge good">heute</span>}
+        </h3>
+        <span className="tiny muted tabular">
+          {Math.round(total.kcal)} kcal · {Math.round(total.protein)} g Protein
+        </span>
+      </div>
       {slots.map((slot, k) => (
         <MealRow key={k} index={day * 2 + k} slot={slot} recipe={recipesById.get(slot.recipeId)} onSwap={onSwap} />
       ))}
@@ -236,8 +308,14 @@ function MealRow({
 }) {
   const favorites = useStore((s) => s.favorites);
   const toggleCooked = useStore((s) => s.toggleCooked);
+  const toggleFavorite = useStore((s) => s.toggleFavorite);
+  const setPasta = useStore((s) => s.setPasta);
   if (!recipe) return null;
   const leftover = slot.leftoverOf !== undefined;
+  const info = slotInfo(slot, recipe);
+  const liked = favorites.includes(recipe.id);
+  const originalPasta = pastaIngredientOf(recipe, INGREDIENTS_BY_ID);
+  const currentPasta = originalPasta ? (slot.swaps?.[originalPasta] ?? originalPasta) : null;
   return (
     <div className={`meal ${slot.cooked ? 'done' : ''}`}>
       <Checkbox checked={slot.cooked} onChange={() => toggleCooked(index)} label={`${recipe.name} als gekocht markieren`} />
@@ -249,19 +327,47 @@ function MealRow({
         <div className="small muted">
           {leftover
             ? 'Reste vom Vorabend – nur aufwärmen'
-            : `${recipe.prepMin + recipe.cookMin} Min · ${recipe.kcal} kcal · ${recipe.protein} g Protein`}
+            : `${recipe.prepMin + recipe.cookMin} Min · ${info.kcal} kcal · ${info.protein} g Protein`}
         </div>
+        {currentPasta && !leftover && (
+          <label className="pasta-pick">
+            <span className="tiny muted">Pasta:</span>
+            <select
+              value={currentPasta}
+              onChange={(e) => setPasta(index, e.target.value)}
+              aria-label={`Pasta-Sorte für ${recipe.name}`}
+            >
+              {PASTA_TYPES.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name}
+                  {p.id === originalPasta ? ' (Rezept)' : ''}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
         <div className="badges">
           {slot.double && <span className="badge info">doppelt kochen → Mittag morgen</span>}
           {leftover && <span className="badge info">Reste</span>}
-          {favorites.includes(recipe.id) && <span className="badge good">★ Favorit</span>}
+          {info.meat && <span className="badge">Fleisch</span>}
           {recipe.tags.includes('vegetarisch') && <span className="badge">vegi</span>}
           {slot.locked && <span className="badge">fixiert</span>}
         </div>
       </div>
-      <button className="btn icon ghost" onClick={() => onSwap(index)} aria-label={`${recipe.name} austauschen`}>
-        <Icon name="swap" />
-      </button>
+      <div className="meal-actions">
+        <button
+          className={`btn icon ghost like ${liked ? 'on' : ''}`}
+          onClick={() => toggleFavorite(recipe.id)}
+          aria-pressed={liked}
+          aria-label={liked ? `${recipe.name}: gefällt mir nicht mehr` : `${recipe.name}: gefällt mir`}
+          title={liked ? 'Gefällt mir – kommt regelmässig' : 'Gefällt mir'}
+        >
+          <Icon name="heart" filled={liked} />
+        </button>
+        <button className="btn icon ghost" onClick={() => onSwap(index)} aria-label={`${recipe.name} austauschen`}>
+          <Icon name="swap" />
+        </button>
+      </div>
     </div>
   );
 }
@@ -311,7 +417,8 @@ function SwapSheet({ index, onClose }: { index: number; onClose: () => void }) {
                 <span className="grow">
                   <span className="option-title">{recipe.name}</span>
                   <span className="tiny muted">
-                    {recipe.prepMin + recipe.cookMin} Min · {recipe.kcal} kcal · Woche {formatCHF(total)}
+                    {recipe.prepMin + recipe.cookMin} Min · {recipe.kcal} kcal · {recipe.protein} g Protein · Woche{' '}
+                    {formatCHF(total)}
                   </span>
                 </span>
                 <span className={`delta tabular ${delta > 0 ? 'up' : delta < 0 ? 'down' : ''}`}>

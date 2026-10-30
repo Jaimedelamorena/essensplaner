@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import { WEEKDAYS } from '../../core/dates';
-import { CATEGORIES, CATEGORY_LABELS, type Persons, type Weekday } from '../../core/types';
+import { pastaTypes } from '../../core/recipes';
+import { CATEGORIES, CATEGORY_LABELS, type NutritionGoal, type Persons, type Weekday } from '../../core/types';
 import { INGREDIENTS } from '../../data';
 import { INGREDIENTS_BY_ID } from '../../state/derive';
 import { exportJSON, useStore } from '../../state/store';
@@ -81,6 +82,62 @@ export function SettingsPage() {
         <label className="toggle-row">
           <input type="checkbox" checked={settings.lunchToGo} onChange={(e) => updateSettings({ lunchToGo: e.target.checked })} />
           <span>Mittagessen zum Mitnehmen (nur passende Rezepte am Mittag)</span>
+        </label>
+      </section>
+
+      <section className="card stack-sm">
+        <h2>Ernährung & Vorlieben</h2>
+        <div className="field">
+          <span>Ernährungsziel</span>
+          <Segmented<NutritionGoal>
+            label="Ernährungsziel"
+            value={settings.nutritionGoal}
+            onChange={(nutritionGoal) => updateSettings({ nutritionGoal })}
+            options={[
+              { value: 'protein', label: 'Viel Protein, wenig kcal' },
+              { value: 'ausgewogen', label: 'Ausgewogen' },
+            ]}
+          />
+        </div>
+        <label className="field">
+          <span>
+            Fleisch-Mahlzeiten pro Woche: mindestens {settings.minMeatMeals === 0 ? '– (egal)' : settings.minMeatMeals}
+          </span>
+          <input
+            type="range"
+            min={0}
+            max={7}
+            value={settings.minMeatMeals}
+            onChange={(e) => updateSettings({ minMeatMeals: Number(e.target.value) })}
+          />
+          <span className="tiny muted">Reste-Mittagessen zählen mit. Frisches Fleisch landet am Anfang der Woche.</span>
+        </label>
+        <label className="field">
+          <span>
+            Lieblingsrezepte pro Woche: mindestens {settings.minFavorites === 0 ? '– (egal)' : settings.minFavorites}
+          </span>
+          <input
+            type="range"
+            min={0}
+            max={5}
+            value={settings.minFavorites}
+            onChange={(e) => updateSettings({ minFavorites: Number(e.target.value) })}
+          />
+          <span className="tiny muted">
+            Markiere Rezepte mit ♥ «Gefällt mir». Sie kommen regelmässig in den Plan – was länger nicht dran war, zuerst.
+          </span>
+        </label>
+        <label className="field">
+          <span>Pasta-Sorte für alle Pasta-Gerichte</span>
+          <select value={settings.preferredPasta} onChange={(e) => updateSettings({ preferredPasta: e.target.value })}>
+            <option value="">Wie im Rezept</option>
+            {pastaTypes(INGREDIENTS).map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.name}
+              </option>
+            ))}
+          </select>
+          <span className="tiny muted">Einzelne Gerichte kannst du im Wochenplan auf eine andere Sorte umstellen.</span>
         </label>
       </section>
 

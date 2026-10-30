@@ -1,6 +1,8 @@
 import { useState } from 'react';
+import { effectiveIngredients, isMeatMeal, nutritionFor, pastaIngredientOf, pastaSwap, pastaTypes } from '../../core/recipes';
 import type { Persons } from '../../core/types';
 import { formatIngredientQty } from '../../core/units';
+import { INGREDIENTS } from '../../data';
 import { BUILTIN_RECIPE_IDS, INGREDIENTS_BY_ID } from '../../state/derive';
 import { useStore } from '../../state/store';
 import { Empty, Segmented } from '../components';
@@ -25,6 +27,8 @@ export function RecipeDetailPage({ id }: { id: string }) {
   const userRecipes = useStore((s) => s.userRecipes);
   const { toggleFavorite, toggleBlocked, deleteUserRecipe } = useStore.getState();
   const [persons, setPersons] = useState<Persons>(settingsPersons);
+  const preferredPasta = useStore((s) => s.settings.preferredPasta);
+  const [pasta, setPasta] = useState(preferredPasta);
 
   if (!recipe) {
     return (
@@ -38,6 +42,11 @@ export function RecipeDetailPage({ id }: { id: string }) {
   const isBlocked = blocked.includes(recipe.id);
   const isBuiltin = BUILTIN_RECIPE_IDS.has(recipe.id);
   const isEdited = isBuiltin && userRecipes.some((r) => r.id === recipe.id);
+  const originalPasta = pastaIngredientOf(recipe, INGREDIENTS_BY_ID);
+  const swaps = originalPasta ? pastaSwap(recipe, pasta || undefined, INGREDIENTS_BY_ID) : undefined;
+  const items = effectiveIngredients(recipe, swaps, INGREDIENTS_BY_ID);
+  const nutrition = nutritionFor(recipe, swaps, INGREDIENTS_BY_ID);
+  const meat = isMeatMeal(items, INGREDIENTS_BY_ID);
 
   return (
     <div className="stack">
@@ -51,9 +60,10 @@ export function RecipeDetailPage({ id }: { id: string }) {
           Min Kochen = <strong>{recipe.prepMin + recipe.cookMin} Min</strong>
         </div>
         <div className="small">
-          {recipe.kcal} kcal · {recipe.protein} g Protein <span className="muted">pro Portion (geschätzt)</span>
+          {nutrition.kcal} kcal · {nutrition.protein} g Protein <span className="muted">pro Portion (geschätzt)</span>
         </div>
         <div className="badges">
+          {meat && <span className="badge">Fleisch</span>}
           {recipe.tags.map((t) => (
             <span key={t} className="badge">
               {TAG_LABEL[t] ?? t}
@@ -64,7 +74,7 @@ export function RecipeDetailPage({ id }: { id: string }) {
         </div>
         <div className="row wrap">
           <button className={`btn small ${isFavorite ? 'primary' : ''}`} onClick={() => toggleFavorite(recipe.id)} aria-pressed={isFavorite}>
-            <Icon name="star" size={18} filled={isFavorite} /> {isFavorite ? 'Favorit' : 'Als Favorit'}
+            <Icon name="heart" size={18} filled={isFavorite} /> {isFavorite ? 'Gefällt mir' : 'Gefällt mir?'}
           </button>
           <button className={`btn small ${isBlocked ? 'danger' : ''}`} onClick={() => toggleBlocked(recipe.id)} aria-pressed={isBlocked}>
             <Icon name="ban" size={18} /> {isBlocked ? 'Nie wieder (aktiv)' : 'Nie wieder'}
@@ -87,6 +97,9 @@ export function RecipeDetailPage({ id }: { id: string }) {
             </button>
           )}
         </div>
+        {isFavorite && (
+          <p className="tiny muted no-margin">♥ Kommt regelmässig in deinen Wochenplan – was länger nicht dran war, zuerst.</p>
+        )}
       </section>
 
       <section className="card stack-sm">
@@ -102,8 +115,21 @@ export function RecipeDetailPage({ id }: { id: string }) {
             ]}
           />
         </div>
+        {originalPasta && (
+          <label className="pasta-pick">
+            <span className="small muted">Pasta-Sorte:</span>
+            <select value={pasta || originalPasta} onChange={(e) => setPasta(e.target.value === originalPasta ? '' : e.target.value)}>
+              {pastaTypes(INGREDIENTS).map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name}
+                  {p.id === originalPasta ? ' (Rezept)' : ''}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
         <ul className="ingredient-list">
-          {recipe.ingredients.map(({ id: ingredientId, qty }) => {
+          {items.map(({ id: ingredientId, qty }) => {
             const ingredient = INGREDIENTS_BY_ID.get(ingredientId);
             if (!ingredient) return null;
             return (

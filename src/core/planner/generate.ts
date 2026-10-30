@@ -1,6 +1,7 @@
 import { pantryAvailable, pantryExpiringSoon } from '../pantry';
 import { groupByIngredient } from '../pricing';
 import { SLOTS_PER_WEEK } from '../plan';
+import { effectiveIngredients, pastaSwap } from '../recipes';
 import type { Ingredient, MealType, PantryItem, Product, Recipe, Settings, Slot, WeekPlan } from '../types';
 import { createUnitPrices, evaluate, type Evaluation, type PlannerContext } from './evaluate';
 import { baseCandidates, fitsSlot } from './filter';
@@ -14,8 +15,10 @@ export interface PlannerInput {
   settings: Settings;
   favorites: string[];
   blocked: string[];
-  /** Rezepte der Vorwoche – werden möglichst nicht wiederholt. */
+  /** Rezepte der Vorwoche – werden möglichst nicht wiederholt (ausser Lieblingsrezepte). */
   lastWeek: string[];
+  /** Rezepte der letzten Wochen, neueste zuerst – damit Lieblingsrezepte regelmässig abwechseln. */
+  recentWeeks?: string[][];
   weekStart: string;
   alreadySpent?: number;
   seed?: number;
@@ -39,18 +42,37 @@ export interface Alternative {
 type Slots = (Slot | null)[];
 
 const IMPROVE_STEPS = 250;
-const MAX_REPAIR_STEPS = 40;
+const MAX_REPAIR_STEPS = 60;
 /** Kostengewichte der Durchgänge: zuerst Abwechslung, bei knappem Budget immer mehr Kosten. */
-const COST_WEIGHTS = [1, 2.5, 6];
+const COST_WEIGHTS = [1, 2.5, 6, 10, 16];
 /** Mindestens so viele Rezepte müssen übrig bleiben, damit die Vorwoche ganz ausgeschlossen wird. */
 const MIN_POOL_WITHOUT_LAST_WEEK = 24;
+
+/**
+ * Bonus für Lieblingsrezepte: 3 (letzte Woche gegessen), 6 (vor 2 Wochen) bis 9 (seit 3+ Wochen nicht mehr).
+ * So kommen sie regelmässig, wechseln sich aber ab, wenn es mehrere gibt.
+ */
+export function favoriteBonus(favorites: string[], recentWeeks: string[][]): Map<string, number> {
+  const map = new Map<string, number>();
+  for (const id of favorites) {
+    const index = recentWeeks.findIndex((week) => week.includes(id));
+    const weeksAgo = index < 0 ? 3 : index + 1;
+    map.set(id, 3 * Math.min(weeksAgo, 3));
+  }
+  return map;
+}
 
 export function buildContext(input: PlannerInput, seed = input.seed ?? Date.now()): PlannerContext {
   const rng = createRng(seed ^ 0x9e3779b9);
   const byIngredient = groupByIngredient(input.products);
+  const ingredientsById = new Map(input.ingredients.map((i) => [i.id, i]));
+  const recentWeeks = input.recentWeeks ?? (input.lastWeek.length ? [input.lastWeek] : []);
+  const eligibleFavorites = baseCandidates(input.recipes, input.settings, new Set(input.blocked), ingredientsById).filter(
+    (r) => input.favorites.includes(r.id),
+  ).length;
   return {
     recipesById: new Map(input.recipes.map((r) => [r.id, r])),
-    ingredientsById: new Map(input.ingredients.map((i) => [i.id, i])),
+    ingredientsById,
     byIngredient,
     pantryAvail: pantryAvailable(input.pantry, input.weekStart),
     pantryExpiring: pantryExpiringSoon(input.pantry, input.weekStart, 3),
@@ -59,10 +81,15 @@ export function buildContext(input: PlannerInput, seed = input.seed ?? Date.now(
     splitThreshold: input.settings.splitThreshold,
     alreadySpent: input.alreadySpent ?? 0,
     favorites: new Set(input.favorites),
+    favoriteBonus: favoriteBonus(input.favorites, recentWeeks),
+    favoriteTarget: Math.min(input.settings.minFavorites ?? 0, eligibleFavorites),
     lastWeek: new Set(input.lastWeek),
+    minMeatMeals: input.settings.minMeatMeals ?? 0,
+    nutritionGoal: input.settings.nutritionGoal ?? 'ausgewogen',
     jitter: new Map(input.recipes.map((r) => [r.id, rng() * 1.5])),
     unitPrice: createUnitPrices(byIngredient),
     packMemo: new Map(),
+    slotMemo: new Map(),
     costWeight: 1,
   };
 }
@@ -76,16 +103,35 @@ export function doubleDinnerDays(count: number): number[] {
 const mealOf = (index: number): MealType => (index % 2 === 0 ? 'mittag' : 'abend');
 
 /** Setzt ein Rezept in einen Slot; doppelte Abendessen füllen den nächsten Mittag mit Resten. */
-export function place(slots: Slots, index: number, recipeId: string, double: boolean): Slots {
+export function place(
+  slots: Slots,
+  index: number,
+  recipeId: string,
+  double: boolean,
+  swaps?: Record<string, string>,
+): Slots {
   const next = [...slots];
   const day = Math.floor(index / 2);
   const old = slots[index];
   if (old?.double && next[index + 1]?.leftoverOf === index) next[index + 1] = null;
-  next[index] = { day, meal: mealOf(index), recipeId, cooked: false, ...(double ? { double: true } : {}) };
+  const extra = { ...(double ? { double: true } : {}), ...(swaps ? { swaps } : {}) };
+  next[index] = { day, meal: mealOf(index), recipeId, cooked: false, ...extra };
   if (double && index + 1 < SLOTS_PER_WEEK) {
-    next[index + 1] = { day: day + 1, meal: 'mittag', recipeId, leftoverOf: index, cooked: false };
+    next[index + 1] = {
+      day: day + 1,
+      meal: 'mittag',
+      recipeId,
+      leftoverOf: index,
+      cooked: false,
+      ...(swaps ? { swaps } : {}),
+    };
   }
   return next;
+}
+
+/** Pasta-Sorte aus den Einstellungen auf ein Rezept anwenden. */
+export function defaultSwaps(recipe: Recipe, settings: Settings, ingredientsById: Map<string, Ingredient>) {
+  return pastaSwap(recipe, settings.preferredPasta || undefined, ingredientsById);
 }
 
 const usedElsewhere = (slots: Slots, recipeId: string, except: number) =>
@@ -121,31 +167,62 @@ class Search {
     return slots.map((s, i) => (s && !this.isFixed[i] && s.leftoverOf === undefined ? i : -1)).filter((i) => i >= 0);
   }
 
+  /** Rezept setzen – mit der Pasta-Sorte aus den Einstellungen. */
+  private put(slots: Slots, index: number, recipe: Recipe, double: boolean): Slots {
+    return place(slots, index, recipe.id, double, defaultSwaps(recipe, this.settings, this.ctx.ingredientsById));
+  }
+
   private replace(slots: Slots, index: number, recipe: Recipe): Slots | null {
     const slot = slots[index]!;
     const double = !!slot.double && recipe.tags.includes('meal-prep');
     if (slot.double && !double) return null;
-    return place(slots, index, recipe.id, double);
+    return this.put(slots, index, recipe, double);
   }
 
-  /** Slot für Slot das am besten bewertete Rezept (mit etwas Zufall). */
+  /**
+   * 1. Lieblingsrezepte zuerst – jedes auf seinen besten freien Platz (die «fälligsten» zuerst).
+   * 2. Danach Slot für Slot das am besten bewertete Rezept (mit etwas Zufall).
+   */
   construct(): void {
     const doubles = new Set(
       doubleDinnerDays(this.settings.leftoverLunches).filter(
         (d) => !this.slots[d * 2 + 1] && !this.slots[d * 2 + 2],
       ),
     );
+    const isDoubleDinner = (index: number) => mealOf(index) === 'abend' && doubles.has(Math.floor(index / 2));
+    const isLeftoverLunch = (index: number) => mealOf(index) === 'mittag' && doubles.has(Math.floor(index / 2) - 1);
+
+    const placed = this.slots.filter((s) => s && s.leftoverOf === undefined && this.ctx.favorites.has(s.recipeId)).length;
+    const due = (r: Recipe) => (this.ctx.favoriteBonus.get(r.id) ?? 0) + (this.ctx.jitter.get(r.id) ?? 0);
+    const favorites = this.pool
+      .filter((r) => this.ctx.favorites.has(r.id) && !usedElsewhere(this.slots, r.id, -1))
+      .sort((a, b) => due(b) - due(a))
+      .slice(0, Math.max(0, this.ctx.favoriteTarget - placed));
+    for (const recipe of favorites) {
+      let best: { slots: Slots; objective: number } | null = null;
+      for (let index = 0; index < SLOTS_PER_WEEK; index++) {
+        if (this.slots[index] || isLeftoverLunch(index)) continue;
+        const double = isDoubleDinner(index);
+        if (double && !recipe.tags.includes('meal-prep')) continue;
+        if (!fitsSlot(recipe, { meal: mealOf(index), double }, this.settings)) continue;
+        const trial = this.put(this.slots, index, recipe, double);
+        const objective = evaluate(trial, this.ctx).objective;
+        if (!best || objective > best.objective) best = { slots: trial, objective };
+      }
+      if (best) this.slots = best.slots;
+    }
+
     for (let index = 0; index < SLOTS_PER_WEEK; index++) {
       if (this.slots[index]) continue;
-      const double = mealOf(index) === 'abend' && doubles.has(Math.floor(index / 2));
+      const double = isDoubleDinner(index) && !this.slots[index + 1];
       const scored = candidatesFor(this.pool, this.slots, index, double, this.settings)
         .map((recipe) => {
           const fitsDouble = double && recipe.tags.includes('meal-prep');
-          return { recipe, double: fitsDouble, e: evaluate(place(this.slots, index, recipe.id, fitsDouble), this.ctx) };
+          return { recipe, double: fitsDouble, e: evaluate(this.put(this.slots, index, recipe, fitsDouble), this.ctx) };
         })
         .sort((a, b) => b.e.objective - a.e.objective);
       const pick = pickTop(scored, this.rng);
-      this.slots = place(this.slots, index, pick.recipe.id, pick.double);
+      this.slots = this.put(this.slots, index, pick.recipe, pick.double);
     }
     this.current = evaluate(this.slots, this.ctx);
   }
@@ -163,7 +240,7 @@ class Search {
         if (e.violations > this.current.violations) continue;
         const saving = this.current.total - e.total;
         if (saving <= 0.01) continue;
-        const metric = saving + 0.1 * (e.objective - this.current.objective);
+        const metric = saving + 0.03 * (e.objective - this.current.objective);
         if (!best || metric > best.metric) best = { slots: trial, e, metric };
       }
     }
@@ -187,7 +264,8 @@ class Search {
       for (const index of this.freeIndices(trial)) {
         const slot = trial[index]!;
         const recipe = this.ctx.recipesById.get(slot.recipeId)!;
-        if (!recipe.ingredients.some((i) => i.id === ingredientId)) continue;
+        const used = effectiveIngredients(recipe, slot.swaps, this.ctx.ingredientsById);
+        if (!used.some((i) => i.id === ingredientId)) continue;
         const options = candidatesFor(this.pool, trial, index, !!slot.double, this.settings).filter(
           (r) => r.id !== slot.recipeId && !r.ingredients.some((i) => i.id === ingredientId),
         );
@@ -259,7 +337,8 @@ export function generatePlan(input: PlannerInput, fixed: Slots = []): GenerateRe
   const rng = createRng(seed);
   const ctx = buildContext(input, seed);
   const base = baseCandidates(input.recipes, input.settings, new Set(input.blocked), ctx.ingredientsById);
-  const withoutLastWeek = base.filter((r) => !ctx.lastWeek.has(r.id));
+  // Vorwoche ausschliessen – ausser Lieblingsrezepte, die sollen regelmässig kommen.
+  const withoutLastWeek = base.filter((r) => !ctx.lastWeek.has(r.id) || ctx.favorites.has(r.id));
   const pool = withoutLastWeek.length >= MIN_POOL_WITHOUT_LAST_WEEK ? withoutLastWeek : base;
   const budget = input.settings.budget;
 
@@ -319,7 +398,16 @@ export function alternativesForSlot(plan: WeekPlan, index: number, input: Planne
     .filter((r) => r.id !== slot.recipeId || slot.leftoverOf !== undefined)
     .map((recipe) => ({
       recipe,
-      e: evaluate(place(slots, index, recipe.id, double && recipe.tags.includes('meal-prep')), ctx),
+      e: evaluate(
+        place(
+          slots,
+          index,
+          recipe.id,
+          double && recipe.tags.includes('meal-prep'),
+          defaultSwaps(recipe, input.settings, ctx.ingredientsById),
+        ),
+        ctx,
+      ),
     }))
     .filter(({ e }) => e.violations <= current.violations)
     .sort((a, b) => b.e.objective - a.e.objective)
@@ -332,7 +420,7 @@ export function alternativesForSlot(plan: WeekPlan, index: number, input: Planne
 }
 
 /** Tauscht eine Mahlzeit aus und markiert sie als von Hand gewählt. */
-export function swapSlot(plan: WeekPlan, index: number, recipe: Recipe): WeekPlan {
+export function swapSlot(plan: WeekPlan, index: number, recipe: Recipe, swaps?: Record<string, string>): WeekPlan {
   let slots: Slots = [...plan.slots];
   const slot = slots[index];
   if (!slot) return plan;
@@ -340,7 +428,7 @@ export function swapSlot(plan: WeekPlan, index: number, recipe: Recipe): WeekPla
     const source = slots[slot.leftoverOf];
     if (source) slots[slot.leftoverOf] = { ...source, double: undefined };
   }
-  slots = place(slots, index, recipe.id, !!slot.double && recipe.tags.includes('meal-prep'));
+  slots = place(slots, index, recipe.id, !!slot.double && recipe.tags.includes('meal-prep'), swaps);
   slots[index] = { ...slots[index]!, locked: true };
   return { ...plan, slots: slots as Slot[] };
 }

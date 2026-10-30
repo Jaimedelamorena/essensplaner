@@ -40,6 +40,7 @@ export function plannerInput(state: AppState, weekStart: string, lastWeek: strin
     favorites: state.favorites,
     blocked: state.blocked,
     lastWeek,
+    recentWeeks: state.history.map((h) => h.recipeIds),
     weekStart,
   };
 }
@@ -48,7 +49,7 @@ export function plannerInput(state: AppState, weekStart: string, lastWeek: strin
 export function planShopping(state: AppState): ShoppingResult | null {
   if (!state.plan) return null;
   const recipesById = new Map(mergedRecipes(state.userRecipes).map((r) => [r.id, r]));
-  const needs = planNeeds(state.plan.slots, state.plan.persons, recipesById);
+  const needs = planNeeds(state.plan.slots, state.plan.persons, recipesById, INGREDIENTS_BY_ID);
   return computeShopping(needs, {
     ingredientsById: INGREDIENTS_BY_ID,
     byIngredient: groupByIngredient(effectiveProducts(state.priceOverrides)),

@@ -1,4 +1,5 @@
 import { addToPantry, consume, expiryFor } from './pantry';
+import { effectiveIngredients } from './recipes';
 import { choiceFor, type ShoppingMode, type ShoppingResult } from './shopping';
 import type { Ingredient, PantryItem, Persons, Recipe, Slot, WeekPlan } from './types';
 
@@ -13,28 +14,35 @@ export function portionsFor(slot: Slot, persons: Persons): number {
   return persons * (slot.double ? 2 : 1);
 }
 
+/** Zutaten eines Slots (inkl. ausgetauschter Pasta-Sorte), skaliert auf die gekochten Portionen. */
+export function slotIngredients(
+  slot: Slot,
+  persons: Persons,
+  recipesById: Map<string, Recipe>,
+  ingredientsById: Map<string, Ingredient>,
+): { id: string; qty: number }[] {
+  const recipe = recipesById.get(slot.recipeId);
+  const portions = portionsFor(slot, persons);
+  if (!recipe || portions === 0) return [];
+  return effectiveIngredients(recipe, slot.swaps, ingredientsById).map(({ id, qty }) => ({ id, qty: qty * portions }));
+}
+
 /** Zutatenbedarf eines Plans; bereits gekochte Slots zählen nicht mehr. */
 export function planNeeds(
   slots: (Slot | null)[],
   persons: Persons,
   recipesById: Map<string, Recipe>,
+  ingredientsById: Map<string, Ingredient>,
   includeCooked = false,
 ): Map<string, number> {
   const needs = new Map<string, number>();
   for (const slot of slots) {
     if (!slot || (slot.cooked && !includeCooked)) continue;
-    const portions = portionsFor(slot, persons);
-    if (portions === 0) continue;
-    const recipe = recipesById.get(slot.recipeId);
-    if (!recipe) continue;
-    for (const { id, qty } of recipe.ingredients) needs.set(id, (needs.get(id) ?? 0) + qty * portions);
+    for (const { id, qty } of slotIngredients(slot, persons, recipesById, ingredientsById)) {
+      needs.set(id, (needs.get(id) ?? 0) + qty);
+    }
   }
   return needs;
-}
-
-/** Skaliert die Zutaten eines Rezepts auf eine Anzahl Portionen. */
-export function scaleRecipe(recipe: Recipe, portions: number): { id: string; qty: number }[] {
-  return recipe.ingredients.map(({ id, qty }) => ({ id, qty: qty * portions }));
 }
 
 /** «Gekocht»: Zutaten des Slots von den Vorräten abziehen. */
@@ -43,11 +51,12 @@ export function cookSlot(
   slot: Slot,
   persons: Persons,
   recipesById: Map<string, Recipe>,
+  ingredientsById: Map<string, Ingredient>,
 ): PantryItem[] {
-  const recipe = recipesById.get(slot.recipeId);
-  const portions = portionsFor(slot, persons);
-  if (!recipe || portions === 0) return pantry;
-  return scaleRecipe(recipe, portions).reduce((acc, { id, qty }) => consume(acc, id, qty), pantry);
+  return slotIngredients(slot, persons, recipesById, ingredientsById).reduce(
+    (acc, { id, qty }) => consume(acc, id, qty),
+    pantry,
+  );
 }
 
 /** «Gekocht» rückgängig: Zutaten wieder gutschreiben. */
@@ -58,10 +67,7 @@ export function uncookSlot(
   recipesById: Map<string, Recipe>,
   ingredientsById: Map<string, Ingredient>,
 ): PantryItem[] {
-  const recipe = recipesById.get(slot.recipeId);
-  const portions = portionsFor(slot, persons);
-  if (!recipe || portions === 0) return pantry;
-  return scaleRecipe(recipe, portions).reduce((acc, { id, qty }) => {
+  return slotIngredients(slot, persons, recipesById, ingredientsById).reduce((acc, { id, qty }) => {
     const ingredient = ingredientsById.get(id);
     return ingredient ? addToPantry(acc, ingredient, qty, undefined) : acc;
   }, pantry);

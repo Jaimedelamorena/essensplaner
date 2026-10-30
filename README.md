@@ -8,8 +8,13 @@ Browser – ohne Backend, ohne Login, ohne KI-API.
 
 - **Wochenplan** Mo–So (ab Einkaufstag), «Neue Woche generieren», einzelne Mahlzeiten tauschen
   (mit Kostenänderung), Reste-Mittagessen (Abendessen doppelt kochen), 1 / 2 Personen.
-- **Rezepte**: 50 Rezepte, Mengen für 1 oder 2 Personen, eigene Rezepte anlegen/bearbeiten,
-  Favoriten und «nie wieder».
+- **Rezepte**: 75 Rezepte (davon 25 proteinreich und leicht), Mengen für 1 oder 2 Personen, eigene
+  Rezepte anlegen/bearbeiten, ♥ «Gefällt mir» und «nie wieder».
+- **Vorlieben** (Einstellungen): Ernährungsziel «viel Protein, wenig kcal», mindestens X
+  Fleisch-Mahlzeiten pro Woche, mindestens X Lieblingsrezepte pro Woche (sie kommen regelmässig und
+  wechseln sich ab) und eine Standard-Pasta.
+- **Pasta-Sorten**: Spaghetti, Penne, Hörnli, Farfalle, Fusilli, Rigatoni, Tagliatelle,
+  Vollkorn-Spaghetti, Linsen-Pasta, Protein-Pasta und Ravioli – pro Gericht im Plan austauschbar.
 - **Einkaufsliste**: aus dem Plan, Vorräte abgezogen, nach Kategorien, mit echten Packungsgrössen,
   Ladenvergleich Coop / Migros / Kombination, zum Abhaken, «Einkauf erledigt» → Vorräte.
 - **Vorräte** mit Ablaufdatum, Grundvorrat separat, «gekocht» zieht Zutaten ab, Plan neu berechnen.
@@ -52,7 +57,7 @@ für Studierende im GitHub Student Developer Pack enthalten). Alternativ funktio
 
 ## Preise aktualisieren
 
-Die Preise in `src/data/prices.json` wurden am 16.10.2026 auf coop.ch und migros.ch
+Die Preise in `src/data/prices.json` wurden am 16.10.2026 (neue Zutaten am 30.10.2026) auf coop.ch und migros.ch
 (Region Ostschweiz, 9000 St. Gallen) erfasst – günstige Eigenmarken (Prix Garantie, M-Budget)
 bevorzugt, Aktionspreise nicht berücksichtigt. Ein Preis war nicht auffindbar und ist als
 `"estimated": true` markiert.
@@ -87,6 +92,9 @@ vegetarisch/vegan werden automatisch berechnet.
    - `tags`: `vegetarisch`, `vegan`, `meal-prep` (eignet sich als Reste-Mittagessen), `mitnehmen`,
      `ofen`. `vegetarisch`/`vegan` müssen zu den Zutaten passen.
    - `base` (Sättigungsbeilage) und `cuisine` – für die Abwechslung
+   - Pasta-Gerichte nutzen eine Zutat der Gruppe `pasta`; sie lässt sich im Plan gegen jede andere
+     Pasta-Sorte tauschen (Menge wird über `groupFactor` umgerechnet, z. B. frische Ravioli × 1.4).
+   - Fleischgericht = mindestens 80 g Zutaten mit `mainMeat: true` pro Portion (Speck zählt nicht).
    - `kcal`/`protein` auf `0` setzen.
 2. Fehlt eine Zutat: in `src/data/ingredients.json` ergänzen (Einheit, Kategorie, Haltbarkeit
    frisch/angebrochen, Nährwerte pro 100 g/ml bzw. pro Stück, `staple: true` für Grundvorrat) und in
@@ -105,7 +113,10 @@ Alles läuft lokal im Browser (`src/core/planner/`):
    - \+ Vorräte, besonders solche, die bald ablaufen
    - − Verschwendung (übrig bleibende verderbliche Ware)
    - − frische Zutaten, die am Kochtag schon abgelaufen wären (Fleisch also früh in der Woche)
-   - − gleiche Beilage oder Küche zweimal hintereinander, + Favoriten
+   - − gleiche Beilage oder Küche zweimal hintereinander
+   - + Lieblingsrezepte (je länger nicht gegessen, desto mehr); sie werden zuerst eingeplant
+   - + Fleisch-Mahlzeiten bis zum gewünschten Minimum
+   - + viel Protein / wenig kcal (bei Ernährungsziel «Protein»)
    - \+ etwas Zufall, damit jede Woche anders aussieht
 
    Gewählt wird eines der drei besten Rezepte.

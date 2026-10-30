@@ -3,7 +3,8 @@ import { createJSONStorage, persist, type StateStorage } from 'zustand/middlewar
 import { nextShoppingDay, todayISO } from '../core/dates';
 import { addToPantry, newId } from '../core/pantry';
 import { cookSlot, planRecipeIds, purchaseToPantry, uncookSlot } from '../core/plan';
-import { generatePlan, keptSlots, swapSlot } from '../core/planner/generate';
+import { defaultSwaps, generatePlan, keptSlots, swapSlot } from '../core/planner/generate';
+import { pastaSwap } from '../core/recipes';
 import { totalFor, type ShoppingMode } from '../core/shopping';
 import type { AppState, PantryItem, Persons, Recipe, Settings } from '../core/types';
 import { PRODUCTS } from '../data';
@@ -19,6 +20,10 @@ export const DEFAULT_SETTINGS: Settings = {
   leftoverLunches: 2,
   lunchToGo: false,
   noGo: [],
+  minMeatMeals: 3,
+  nutritionGoal: 'protein',
+  minFavorites: 2,
+  preferredPasta: '',
 };
 
 const initialState: AppState = {
@@ -44,6 +49,8 @@ interface Actions {
   generateWeek(): void;
   recalculate(): void;
   swap(index: number, recipeId: string): void;
+  /** Pasta-Sorte eines Pasta-Gerichts im Plan ändern (gilt auch für dessen Reste). */
+  setPasta(index: number, pastaId: string): void;
   toggleCooked(index: number): void;
   setPersons(persons: Persons): void;
   completeShopping(mode: ShoppingMode): void;
@@ -136,7 +143,7 @@ export const useStore = create<Store>()(
             ? [{ weekStart: old.weekStart, recipeIds: planRecipeIds(old) }, ...state.history].slice(0, 8)
             : state.history;
         const input = {
-          ...plannerInput(state, weekStart, history[0]?.recipeIds ?? []),
+          ...plannerInput({ ...state, history }, weekStart, history[0]?.recipeIds ?? []),
           alreadySpent: sameWeek ? (old?.shopping?.total ?? 0) : 0,
         };
         const result = generatePlan(input, sameWeek && old ? keptSlots(old, false) : []);
@@ -170,10 +177,24 @@ export const useStore = create<Store>()(
       },
 
       swap: (index, recipeId) => {
-        const { plan, userRecipes } = get();
+        const { plan, userRecipes, settings } = get();
         const recipe = mergedRecipes(userRecipes).find((r) => r.id === recipeId);
         if (!plan || !recipe) return;
-        set({ plan: swapSlot(plan, index, recipe) });
+        set({ plan: swapSlot(plan, index, recipe, defaultSwaps(recipe, settings, INGREDIENTS_BY_ID)) });
+      },
+
+      setPasta: (index, pastaId) => {
+        const { plan, userRecipes } = get();
+        const slot = plan?.slots[index];
+        const recipe = slot && mergedRecipes(userRecipes).find((r) => r.id === slot.recipeId);
+        if (!plan || !slot || !recipe) return;
+        const swaps = pastaSwap(recipe, pastaId, INGREDIENTS_BY_ID);
+        // Doppeltes Abendessen und sein Reste-Mittag haben dieselbe Pasta.
+        const source = slot.leftoverOf ?? index;
+        const slots = plan.slots.map((s, i) =>
+          i === source || s.leftoverOf === source ? { ...s, swaps, locked: i === index ? true : s.locked } : s,
+        );
+        set({ plan: { ...plan, slots } });
       },
 
       toggleCooked: (index) => {
@@ -183,7 +204,7 @@ export const useStore = create<Store>()(
         const recipesById = new Map(mergedRecipes(userRecipes).map((r) => [r.id, r]));
         const nextPantry = slot.cooked
           ? uncookSlot(pantry, slot, plan.persons, recipesById, INGREDIENTS_BY_ID)
-          : cookSlot(pantry, slot, plan.persons, recipesById);
+          : cookSlot(pantry, slot, plan.persons, recipesById, INGREDIENTS_BY_ID);
         const slots = plan.slots.map((s, i) => (i === index ? { ...s, cooked: !s.cooked } : s));
         set({ plan: { ...plan, slots }, pantry: nextPantry });
       },

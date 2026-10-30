@@ -54,7 +54,19 @@ export interface Ingredient {
   measure?: Measure;
   /** Nährwerte pro 100 g bzw. 100 ml – bei Einheit 'stk' pro Stück. */
   nutrition: { kcal: number; protein: number };
+  /** Austauschgruppe: Zutaten derselben Gruppe sind im Rezept gegeneinander austauschbar (z. B. Pasta-Sorten). */
+  group?: IngredientGroup;
+  /** Mengenfaktor innerhalb der Gruppe (trockene Pasta = 1, frische Ravioli ≈ 1.4). */
+  groupFactor?: number;
+  /** Hauptfleisch (Poulet, Rind, Schwein …) – zählt für «Fleisch pro Woche». Speck zählt nicht. */
+  mainMeat?: boolean;
 }
+
+export const INGREDIENT_GROUPS = ['pasta'] as const;
+export type IngredientGroup = (typeof INGREDIENT_GROUPS)[number];
+
+/** Ab so viel Hauptfleisch pro Portion (g; Stück = 100 g) gilt eine Mahlzeit als Fleischgericht. */
+export const MEAT_MEAL_GRAMS = 80;
 
 export const RECIPE_TAGS = ['vegetarisch', 'vegan', 'meal-prep', 'mitnehmen', 'ofen'] as const;
 export type RecipeTag = (typeof RECIPE_TAGS)[number];
@@ -152,7 +164,18 @@ export interface Settings {
   lunchToGo: boolean;
   /** Zutaten-IDs, die nie vorkommen dürfen. */
   noGo: string[];
+  /** Mindestens so viele Fleisch-Mahlzeiten pro Woche (Reste-Mittag zählt mit). */
+  minMeatMeals: number;
+  /** «protein»: Rezepte mit viel Protein und wenig Kalorien bevorzugen. */
+  nutritionGoal: NutritionGoal;
+  /** Mindestens so viele Lieblingsrezepte pro Woche (sofern genug markiert sind). */
+  minFavorites: number;
+  /** Pasta-Sorte für alle Pasta-Gerichte (Zutaten-ID) – leer = wie im Rezept. */
+  preferredPasta: string;
 }
+
+export const NUTRITION_GOALS = ['ausgewogen', 'protein'] as const;
+export type NutritionGoal = (typeof NUTRITION_GOALS)[number];
 
 export interface Slot {
   /** 0–6, Tage ab Einkaufstag. */
@@ -165,6 +188,8 @@ export interface Slot {
   double?: boolean;
   /** Von Hand gewählt – bleibt beim Neuberechnen erhalten. */
   locked?: boolean;
+  /** Ausgetauschte Zutaten dieses Slots, z. B. { spaghetti: 'farfalle' }. */
+  swaps?: Record<string, string>;
   cooked: boolean;
 }
 

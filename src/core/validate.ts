@@ -4,6 +4,7 @@ import {
   CATEGORIES,
   CUISINES,
   DIETS,
+  INGREDIENT_GROUPS,
   MAX_MINUTES,
   RECIPE_BASES,
   RECIPE_TAGS,
@@ -46,6 +47,9 @@ export function validateIngredients(ingredients: Ingredient[]): string[] {
         errors.push(`${at}: Haltbarkeit nach Anbruch länger als ungeöffnet`);
     }
     if (ing.measure && !(ing.measure.amount > 0)) errors.push(`${at}: Haushaltsmass muss > 0 sein`);
+    if (ing.group !== undefined && !includes(INGREDIENT_GROUPS, ing.group)) errors.push(`${at}: unbekannte Gruppe ${ing.group}`);
+    if (ing.group && !(ing.groupFactor && ing.groupFactor > 0)) errors.push(`${at}: groupFactor fehlt`);
+    if (ing.mainMeat && ing.diet !== 'fleisch') errors.push(`${at}: mainMeat nur bei Fleisch`);
     if (!ing.nutrition || !(ing.nutrition.kcal >= 0) || !(ing.nutrition.protein >= 0))
       errors.push(`${at}: Nährwerte fehlen`);
   }
@@ -146,8 +150,9 @@ export function validateData(ingredients: Ingredient[], recipes: Recipe[], produ
     for (const item of recipe.ingredients ?? []) usedIngredients.add(item.id);
   }
 
+  // Austauschbare Zutaten (z. B. Pasta-Sorten) dürfen auch nur als Alternative existieren.
   for (const ing of ingredients)
-    if (!usedIngredients.has(ing.id)) warnings.push(`Zutat «${ing.id}» wird in keinem Rezept verwendet`);
+    if (!usedIngredients.has(ing.id) && !ing.group) warnings.push(`Zutat «${ing.id}» wird in keinem Rezept verwendet`);
 
   return { errors, warnings };
 }

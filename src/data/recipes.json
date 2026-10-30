@@ -1479,5 +1479,754 @@
     "tags": ["mitnehmen"],
     "kcal": 640,
     "protein": 21
+  },
+  {
+    "id": "poulet-gemuese-pfanne-reis",
+    "name": "Poulet-Gemüse-Pfanne mit Reis",
+    "cuisine": "asiatisch",
+    "base": "reis",
+    "prepMin": 10,
+    "cookMin": 15,
+    "ingredients": [
+      { "id": "pouletbrust", "qty": 150 },
+      { "id": "peperoni", "qty": 100 },
+      { "id": "zucchetti", "qty": 100 },
+      { "id": "zwiebel", "qty": 40 },
+      { "id": "sojasauce", "qty": 15 },
+      { "id": "ingwer", "qty": 3 },
+      { "id": "knoblauch", "qty": 3 },
+      { "id": "reis", "qty": 50 },
+      { "id": "rapsoel", "qty": 5 }
+    ],
+    "steps": [
+      "Reis nach Packungsangabe kochen.",
+      "Poulet in Streifen, Peperoni, Zucchetti und Zwiebel in mundgerechte Stücke schneiden. Knoblauch und Ingwer fein hacken.",
+      "Poulet im Rapsöl bei hoher Hitze 4–5 Minuten anbraten und herausnehmen.",
+      "Gemüse in derselben Pfanne 4 Minuten bissfest braten, Knoblauch und Ingwer kurz mitbraten.",
+      "Poulet und Sojasauce dazugeben, alles 1 Minute schwenken und mit dem Reis servieren."
+    ],
+    "tags": ["meal-prep", "mitnehmen"],
+    "kcal": 460,
+    "protein": 43
+  },
+  {
+    "id": "poulet-caesar-salat",
+    "name": "Poulet-Caesar-Salat light",
+    "cuisine": "international",
+    "base": "brot",
+    "prepMin": 10,
+    "cookMin": 12,
+    "ingredients": [
+      { "id": "pouletbrust", "qty": 150 },
+      { "id": "salatherzen", "qty": 150 },
+      { "id": "joghurt-nature", "qty": 60 },
+      { "id": "senf", "qty": 3 },
+      { "id": "zitrone", "qty": 0.25 },
+      { "id": "knoblauch", "qty": 2 },
+      { "id": "parmesan", "qty": 10 },
+      { "id": "baguette", "qty": 40 },
+      { "id": "olivenoel", "qty": 5 },
+      { "id": "salz", "qty": 1 },
+      { "id": "pfeffer", "qty": 0.5 }
+    ],
+    "steps": [
+      "Pouletbrust salzen, pfeffern und im Olivenöl je Seite 5–6 Minuten braten, kurz ruhen lassen und in Streifen schneiden.",
+      "Brot in Würfel schneiden und in derselben Pfanne 2–3 Minuten knusprig rösten.",
+      "Joghurt mit Senf, Zitronensaft, gepresstem Knoblauch, der Hälfte des Parmesans, Salz und Pfeffer zu einer Sauce verrühren.",
+      "Salatherzen in Streifen schneiden, mit der Sauce mischen und mit Poulet, Croûtons und restlichem Parmesan anrichten."
+    ],
+    "tags": ["mitnehmen"],
+    "kcal": 430,
+    "protein": 46
+  },
+  {
+    "id": "truten-geschnetzeltes-tagliatelle",
+    "name": "Truten-Geschnetzeltes mit Champignons & Tagliatelle",
+    "cuisine": "schweizerisch",
+    "base": "pasta",
+    "prepMin": 10,
+    "cookMin": 15,
+    "ingredients": [
+      { "id": "trutenbrust", "qty": 150 },
+      { "id": "champignons", "qty": 120 },
+      { "id": "zwiebel", "qty": 40 },
+      { "id": "halbrahm", "qty": 30 },
+      { "id": "gemuesebouillon", "qty": 3 },
+      { "id": "mehl", "qty": 3 },
+      { "id": "tagliatelle", "qty": 70 },
+      { "id": "petersilie", "qty": 5 },
+      { "id": "rapsoel", "qty": 5 },
+      { "id": "salz", "qty": 1 },
+      { "id": "pfeffer", "qty": 0.5 }
+    ],
+    "steps": [
+      "Tagliatelle in Salzwasser al dente kochen.",
+      "Trutenbrust in feine Streifen schneiden, Zwiebel hacken, Champignons in Scheiben schneiden.",
+      "Fleisch mit Mehl bestäuben und im Rapsöl portionenweise kurz und heiss anbraten, herausnehmen, salzen und pfeffern.",
+      "Zwiebel und Champignons 3–4 Minuten braten, Halbrahm, Bouillon und einen Schluck Wasser dazugeben und kurz einköcheln.",
+      "Fleisch wieder dazugeben, nur noch erwärmen und mit Tagliatelle und Petersilie servieren."
+    ],
+    "tags": ["meal-prep"],
+    "kcal": 590,
+    "protein": 51
+  },
+  {
+    "id": "trutenschnitzel-ofengemuese",
+    "name": "Trutenschnitzel mit Ofengemüse & Kartoffeln",
+    "cuisine": "international",
+    "base": "kartoffeln",
+    "prepMin": 8,
+    "cookMin": 22,
+    "ingredients": [
+      { "id": "trutenbrust", "qty": 150 },
+      { "id": "kartoffel", "qty": 150 },
+      { "id": "zucchetti", "qty": 150 },
+      { "id": "peperoni", "qty": 100 },
+      { "id": "cherrytomaten", "qty": 100 },
+      { "id": "olivenoel", "qty": 10 },
+      { "id": "oregano", "qty": 1 },
+      { "id": "paprika", "qty": 1 },
+      { "id": "salz", "qty": 2 },
+      { "id": "pfeffer", "qty": 0.5 }
+    ],
+    "steps": [
+      "Ofen auf 220 °C (Umluft 200 °C) vorheizen.",
+      "Kartoffeln in 1-cm-Würfel, Zucchetti und Peperoni in grobe Stücke schneiden. Mit den Cherrytomaten, der Hälfte des Olivenöls, Oregano und Salz auf einem Blech mischen und 20–22 Minuten rösten.",
+      "Trutenschnitzel mit Paprika, Salz und Pfeffer würzen.",
+      "In den letzten 6 Minuten im restlichen Öl in einer Pfanne je Seite 3 Minuten braten.",
+      "Mit dem Ofengemüse servieren."
+    ],
+    "tags": ["meal-prep", "mitnehmen", "ofen"],
+    "kcal": 440,
+    "protein": 44
+  },
+  {
+    "id": "schweinsplaetzli-bohnen-kartoffeln",
+    "name": "Schweinsplätzli mit grünen Bohnen & Salzkartoffeln",
+    "cuisine": "schweizerisch",
+    "base": "kartoffeln",
+    "prepMin": 5,
+    "cookMin": 20,
+    "ingredients": [
+      { "id": "schweinsplaetzli", "qty": 150 },
+      { "id": "bohnen-tk", "qty": 150 },
+      { "id": "kartoffel", "qty": 250 },
+      { "id": "knoblauch", "qty": 3 },
+      { "id": "butter", "qty": 5 },
+      { "id": "rapsoel", "qty": 5 },
+      { "id": "senf", "qty": 5 },
+      { "id": "salz", "qty": 2 },
+      { "id": "pfeffer", "qty": 0.5 }
+    ],
+    "steps": [
+      "Kartoffeln schälen, vierteln und in Salzwasser 15–18 Minuten weich kochen.",
+      "Bohnen in den letzten 8 Minuten in einem zweiten Topf in Salzwasser garen, abgiessen und mit Butter und gehacktem Knoblauch schwenken.",
+      "Schweinsplätzli mit Senf bestreichen, salzen, pfeffern und im Rapsöl je Seite 2–3 Minuten braten.",
+      "Mit Kartoffeln und Bohnen servieren."
+    ],
+    "tags": [],
+    "kcal": 490,
+    "protein": 42
+  },
+  {
+    "id": "schwein-broccoli-mie",
+    "name": "Schweinsfleisch-Stir-Fry mit Broccoli & Mie-Nudeln",
+    "cuisine": "asiatisch",
+    "base": "nudeln",
+    "prepMin": 10,
+    "cookMin": 12,
+    "ingredients": [
+      { "id": "schweinsplaetzli", "qty": 130 },
+      { "id": "brokkoli", "qty": 150 },
+      { "id": "mie-nudeln", "qty": 60 },
+      { "id": "sojasauce", "qty": 15 },
+      { "id": "honig", "qty": 5 },
+      { "id": "ingwer", "qty": 5 },
+      { "id": "knoblauch", "qty": 3 },
+      { "id": "chiliflocken", "qty": 0.3 },
+      { "id": "rapsoel", "qty": 5 },
+      { "id": "fruehlingszwiebeln", "qty": 10 }
+    ],
+    "steps": [
+      "Mie-Nudeln nach Packungsangabe kochen und abtropfen.",
+      "Fleisch in dünne Streifen schneiden, Broccoli in kleine Röschen teilen, Ingwer und Knoblauch fein hacken.",
+      "Fleisch im Rapsöl bei hoher Hitze 2–3 Minuten anbraten und herausnehmen.",
+      "Broccoli mit 3 EL Wasser zugedeckt 4 Minuten dünsten, Ingwer und Knoblauch kurz mitbraten.",
+      "Fleisch, Nudeln, Sojasauce, Honig und Chiliflocken dazugeben, gut mischen und mit Frühlingszwiebeln servieren."
+    ],
+    "tags": ["meal-prep", "mitnehmen"],
+    "kcal": 490,
+    "protein": 42
+  },
+  {
+    "id": "rinds-stroganoff-fusilli",
+    "name": "Leichtes Rindsstroganoff mit Fusilli",
+    "cuisine": "international",
+    "base": "pasta",
+    "prepMin": 10,
+    "cookMin": 15,
+    "ingredients": [
+      { "id": "rindsgeschnetzeltes", "qty": 130 },
+      { "id": "champignons", "qty": 120 },
+      { "id": "zwiebel", "qty": 40 },
+      { "id": "paprika", "qty": 2 },
+      { "id": "tomatenpueree", "qty": 10 },
+      { "id": "gemuesebouillon", "qty": 3 },
+      { "id": "joghurt-nature", "qty": 60 },
+      { "id": "fusilli", "qty": 70 },
+      { "id": "petersilie", "qty": 5 },
+      { "id": "rapsoel", "qty": 5 },
+      { "id": "salz", "qty": 1 },
+      { "id": "pfeffer", "qty": 0.5 }
+    ],
+    "steps": [
+      "Fusilli in Salzwasser al dente kochen.",
+      "Zwiebel hacken, Champignons in Scheiben schneiden.",
+      "Rindfleisch im Rapsöl portionenweise 1–2 Minuten scharf anbraten, herausnehmen, salzen und pfeffern.",
+      "Zwiebel und Champignons 4 Minuten braten, Paprika und Tomatenpüree kurz mitrösten, mit ca. 1 dl Wasser pro Person und der Bouillon ablöschen und 3 Minuten köcheln.",
+      "Pfanne vom Herd nehmen, Joghurt unterrühren (nicht mehr kochen), Fleisch dazugeben und mit Fusilli und Petersilie servieren."
+    ],
+    "tags": ["meal-prep"],
+    "kcal": 560,
+    "protein": 45
+  },
+  {
+    "id": "rindfleisch-broccoli-reis",
+    "name": "Rindfleisch mit Broccoli & Reis",
+    "cuisine": "asiatisch",
+    "base": "reis",
+    "prepMin": 10,
+    "cookMin": 15,
+    "ingredients": [
+      { "id": "rindsgeschnetzeltes", "qty": 130 },
+      { "id": "brokkoli", "qty": 200 },
+      { "id": "sojasauce", "qty": 15 },
+      { "id": "honig", "qty": 5 },
+      { "id": "knoblauch", "qty": 5 },
+      { "id": "ingwer", "qty": 5 },
+      { "id": "mehl", "qty": 3 },
+      { "id": "reis", "qty": 50 },
+      { "id": "rapsoel", "qty": 5 },
+      { "id": "fruehlingszwiebeln", "qty": 10 }
+    ],
+    "steps": [
+      "Reis nach Packungsangabe kochen.",
+      "Sojasauce, Honig, Mehl und 4 EL Wasser pro Person verrühren. Knoblauch und Ingwer fein hacken.",
+      "Broccoli in Röschen teilen und mit wenig Wasser zugedeckt 4 Minuten dünsten.",
+      "Rindfleisch im Rapsöl bei hoher Hitze 1–2 Minuten anbraten, Knoblauch und Ingwer kurz mitbraten.",
+      "Broccoli und Sauce dazugeben, 1 Minute einköcheln und mit Reis und Frühlingszwiebeln servieren."
+    ],
+    "tags": ["meal-prep", "mitnehmen"],
+    "kcal": 500,
+    "protein": 40
+  },
+  {
+    "id": "farfalle-gemuese-bolognese",
+    "name": "Farfalle mit Gemüse-Bolognese",
+    "cuisine": "italienisch",
+    "base": "pasta",
+    "prepMin": 10,
+    "cookMin": 20,
+    "ingredients": [
+      { "id": "farfalle", "qty": 75 },
+      { "id": "hackfleisch", "qty": 120 },
+      { "id": "zucchetti", "qty": 100 },
+      { "id": "karotte", "qty": 50 },
+      { "id": "zwiebel", "qty": 40 },
+      { "id": "knoblauch", "qty": 3 },
+      { "id": "gehackte-tomaten", "qty": 200 },
+      { "id": "oregano", "qty": 0.5 },
+      { "id": "parmesan", "qty": 10 },
+      { "id": "olivenoel", "qty": 5 },
+      { "id": "salz", "qty": 2 },
+      { "id": "pfeffer", "qty": 0.5 }
+    ],
+    "steps": [
+      "Zwiebel, Knoblauch, Karotte und Zucchetti fein würfeln.",
+      "Hackfleisch im Olivenöl krümelig anbraten, Gemüse dazugeben und 4 Minuten mitbraten.",
+      "Gehackte Tomaten und Oregano dazugeben, salzen, pfeffern und 12 Minuten köcheln.",
+      "Inzwischen Farfalle in Salzwasser al dente kochen.",
+      "Mit der Sauce mischen und mit Parmesan servieren."
+    ],
+    "tags": ["meal-prep", "mitnehmen"],
+    "kcal": 720,
+    "protein": 42
+  },
+  {
+    "id": "rigatoni-hackbaellchen",
+    "name": "Rigatoni mit Hackbällchen in Tomatensauce",
+    "cuisine": "italienisch",
+    "base": "pasta",
+    "prepMin": 12,
+    "cookMin": 18,
+    "ingredients": [
+      { "id": "rigatoni", "qty": 70 },
+      { "id": "hackfleisch", "qty": 120 },
+      { "id": "ei", "qty": 0.25 },
+      { "id": "zwiebel", "qty": 30 },
+      { "id": "knoblauch", "qty": 3 },
+      { "id": "gehackte-tomaten", "qty": 200 },
+      { "id": "basilikum", "qty": 3 },
+      { "id": "oregano", "qty": 0.5 },
+      { "id": "olivenoel", "qty": 5 },
+      { "id": "parmesan", "qty": 10 },
+      { "id": "salz", "qty": 2 },
+      { "id": "pfeffer", "qty": 0.5 }
+    ],
+    "steps": [
+      "Zwiebel sehr fein hacken. Hackfleisch mit der Hälfte der Zwiebel, Ei, Oregano, Salz und Pfeffer verkneten und zu kleinen Bällchen formen.",
+      "Bällchen im Olivenöl rundum 5 Minuten anbraten.",
+      "Restliche Zwiebel und Knoblauch dazugeben, gehackte Tomaten dazugiessen und zugedeckt 10 Minuten köcheln.",
+      "Inzwischen Rigatoni in Salzwasser al dente kochen.",
+      "Mit der Sauce mischen und mit Basilikum und Parmesan servieren."
+    ],
+    "tags": ["meal-prep", "mitnehmen"],
+    "kcal": 680,
+    "protein": 41
+  },
+  {
+    "id": "poulet-piccata-vollkornspaghetti",
+    "name": "Poulet-Piccata mit Vollkorn-Tomatenspaghetti",
+    "cuisine": "italienisch",
+    "base": "pasta",
+    "prepMin": 10,
+    "cookMin": 15,
+    "ingredients": [
+      { "id": "pouletbrust", "qty": 150 },
+      { "id": "ei", "qty": 1 },
+      { "id": "parmesan", "qty": 15 },
+      { "id": "mehl", "qty": 5 },
+      { "id": "vollkorn-spaghetti", "qty": 70 },
+      { "id": "gehackte-tomaten", "qty": 150 },
+      { "id": "basilikum", "qty": 3 },
+      { "id": "knoblauch", "qty": 3 },
+      { "id": "olivenoel", "qty": 8 },
+      { "id": "salz", "qty": 2 },
+      { "id": "pfeffer", "qty": 0.5 }
+    ],
+    "steps": [
+      "Vollkorn-Spaghetti in Salzwasser al dente kochen.",
+      "Knoblauch hacken, in der Hälfte des Olivenöls andünsten, gehackte Tomaten dazugeben, salzen und 10 Minuten köcheln.",
+      "Pouletbrust quer halbieren und flach klopfen, salzen, pfeffern und im Mehl wenden. Ei mit Parmesan verquirlen.",
+      "Poulet durch die Eimasse ziehen und im restlichen Öl bei mittlerer Hitze je Seite 3–4 Minuten goldbraun braten.",
+      "Spaghetti mit der Sauce mischen und mit Poulet und Basilikum servieren."
+    ],
+    "tags": [],
+    "kcal": 670,
+    "protein": 59
+  },
+  {
+    "id": "teriyaki-truten-bowl",
+    "name": "Teriyaki-Truten-Bowl mit Edamame",
+    "cuisine": "asiatisch",
+    "base": "reis",
+    "prepMin": 10,
+    "cookMin": 15,
+    "ingredients": [
+      { "id": "trutenbrust", "qty": 130 },
+      { "id": "edamame-tk", "qty": 80 },
+      { "id": "reis", "qty": 50 },
+      { "id": "gurke", "qty": 100 },
+      { "id": "karotte", "qty": 50 },
+      { "id": "sojasauce", "qty": 15 },
+      { "id": "honig", "qty": 6 },
+      { "id": "ingwer", "qty": 3 },
+      { "id": "knoblauch", "qty": 2 },
+      { "id": "rapsoel", "qty": 5 }
+    ],
+    "steps": [
+      "Reis nach Packungsangabe kochen, Edamame die letzten 4 Minuten mitkochen oder separat garen.",
+      "Sojasauce, Honig, geriebenen Ingwer und Knoblauch verrühren.",
+      "Trutenbrust in Würfel schneiden und im Rapsöl 4–5 Minuten braten, Sauce dazugeben und 1 Minute glasieren.",
+      "Gurke in Scheiben, Karotte in feine Streifen schneiden.",
+      "Reis, Edamame, Gemüse und Fleisch in einer Schüssel anrichten."
+    ],
+    "tags": ["meal-prep", "mitnehmen"],
+    "kcal": 520,
+    "protein": 47
+  },
+  {
+    "id": "rindfleisch-fajita-salat",
+    "name": "Rindfleisch-Fajita-Salat",
+    "cuisine": "mexikanisch",
+    "base": "gemuese",
+    "prepMin": 10,
+    "cookMin": 10,
+    "ingredients": [
+      { "id": "rindsgeschnetzeltes", "qty": 120 },
+      { "id": "salatherzen", "qty": 120 },
+      { "id": "peperoni", "qty": 100 },
+      { "id": "mais", "qty": 40 },
+      { "id": "kidneybohnen", "qty": 50 },
+      { "id": "joghurt-nature", "qty": 40 },
+      { "id": "limette", "qty": 0.5 },
+      { "id": "paprika", "qty": 2 },
+      { "id": "kreuzkuemmel", "qty": 1 },
+      { "id": "rapsoel", "qty": 5 },
+      { "id": "salz", "qty": 1 }
+    ],
+    "steps": [
+      "Rindfleisch mit Paprika, Kreuzkümmel und Salz würzen. Peperoni in Streifen schneiden.",
+      "Peperoni im Rapsöl bei hoher Hitze 3 Minuten braten, Fleisch dazugeben und 2 Minuten mitbraten.",
+      "Salatherzen in Streifen schneiden, Bohnen und Mais abtropfen.",
+      "Joghurt mit Limettensaft und einer Prise Salz verrühren.",
+      "Salat mit Bohnen, Mais, Fleisch und Peperoni anrichten und mit dem Limetten-Joghurt beträufeln."
+    ],
+    "tags": ["mitnehmen"],
+    "kcal": 370,
+    "protein": 36
+  },
+  {
+    "id": "poulet-tomaten-curry-light",
+    "name": "Leichtes Poulet-Tomaten-Curry mit Spinat",
+    "cuisine": "asiatisch",
+    "base": "reis",
+    "prepMin": 5,
+    "cookMin": 20,
+    "ingredients": [
+      { "id": "pouletbrust", "qty": 140 },
+      { "id": "gehackte-tomaten", "qty": 150 },
+      { "id": "kokosmilch", "qty": 50 },
+      { "id": "spinat-tk", "qty": 100 },
+      { "id": "zwiebel", "qty": 40 },
+      { "id": "knoblauch", "qty": 3 },
+      { "id": "ingwer", "qty": 3 },
+      { "id": "currypulver", "qty": 3 },
+      { "id": "reis", "qty": 50 },
+      { "id": "rapsoel", "qty": 5 },
+      { "id": "salz", "qty": 2 }
+    ],
+    "steps": [
+      "Reis nach Packungsangabe kochen.",
+      "Zwiebel, Knoblauch und Ingwer hacken und im Rapsöl andünsten, Currypulver 1 Minute mitrösten.",
+      "Poulet in Würfel schneiden, dazugeben und 3 Minuten anbraten.",
+      "Gehackte Tomaten, Kokosmilch und Spinat dazugeben, salzen und 10 Minuten köcheln.",
+      "Mit Reis servieren."
+    ],
+    "tags": ["meal-prep", "mitnehmen"],
+    "kcal": 550,
+    "protein": 43
+  },
+  {
+    "id": "paprika-schweinsgeschnetzeltes",
+    "name": "Paprika-Schweinsgeschnetzeltes mit Reis",
+    "cuisine": "international",
+    "base": "reis",
+    "prepMin": 10,
+    "cookMin": 15,
+    "ingredients": [
+      { "id": "schweinsplaetzli", "qty": 140 },
+      { "id": "peperoni", "qty": 120 },
+      { "id": "zwiebel", "qty": 40 },
+      { "id": "paprika", "qty": 3 },
+      { "id": "tomatenpueree", "qty": 10 },
+      { "id": "gemuesebouillon", "qty": 3 },
+      { "id": "joghurt-nature", "qty": 50 },
+      { "id": "reis", "qty": 50 },
+      { "id": "rapsoel", "qty": 5 },
+      { "id": "salz", "qty": 1 }
+    ],
+    "steps": [
+      "Reis nach Packungsangabe kochen.",
+      "Fleisch, Peperoni und Zwiebel in Streifen schneiden.",
+      "Fleisch im Rapsöl portionenweise 2 Minuten scharf anbraten und herausnehmen.",
+      "Zwiebel und Peperoni 4 Minuten braten, Paprika und Tomatenpüree kurz mitrösten, mit ca. 1 dl Wasser pro Person und der Bouillon ablöschen und 3 Minuten köcheln.",
+      "Vom Herd nehmen, Joghurt unterrühren, Fleisch dazugeben, salzen und mit Reis servieren."
+    ],
+    "tags": ["meal-prep", "mitnehmen"],
+    "kcal": 480,
+    "protein": 39
+  },
+  {
+    "id": "weissfisch-zitronengemuese",
+    "name": "Weissfisch mit Zitronen-Gemüse & Kartoffeln",
+    "cuisine": "international",
+    "base": "kartoffeln",
+    "prepMin": 5,
+    "cookMin": 20,
+    "ingredients": [
+      { "id": "weissfisch-tk", "qty": 160 },
+      { "id": "kartoffel", "qty": 200 },
+      { "id": "zucchetti", "qty": 150 },
+      { "id": "cherrytomaten", "qty": 100 },
+      { "id": "zitrone", "qty": 0.5 },
+      { "id": "petersilie", "qty": 5 },
+      { "id": "olivenoel", "qty": 10 },
+      { "id": "knoblauch", "qty": 3 },
+      { "id": "salz", "qty": 2 },
+      { "id": "pfeffer", "qty": 0.5 }
+    ],
+    "steps": [
+      "Kartoffeln in Scheiben schneiden und in Salzwasser 12–15 Minuten weich kochen.",
+      "Fisch (gefroren geht direkt) salzen und in der Hälfte des Olivenöls zugedeckt bei mittlerer Hitze 8–10 Minuten braten, einmal wenden.",
+      "Zucchetti in Halbmonde schneiden, Cherrytomaten halbieren und mit Knoblauch im restlichen Öl in einer zweiten Pfanne 5 Minuten braten.",
+      "Gemüse mit Zitronensaft, abgeriebener Schale, Petersilie, Salz und Pfeffer abschmecken und mit Fisch und Kartoffeln servieren."
+    ],
+    "tags": [],
+    "kcal": 430,
+    "protein": 37
+  },
+  {
+    "id": "fischtacos-limetten-joghurt",
+    "name": "Fischtacos mit Limetten-Joghurt",
+    "cuisine": "mexikanisch",
+    "base": "tortilla",
+    "prepMin": 10,
+    "cookMin": 12,
+    "ingredients": [
+      { "id": "weissfisch-tk", "qty": 150 },
+      { "id": "tortillas", "qty": 2 },
+      { "id": "salatherzen", "qty": 60 },
+      { "id": "tomate", "qty": 80 },
+      { "id": "joghurt-nature", "qty": 50 },
+      { "id": "limette", "qty": 0.5 },
+      { "id": "paprika", "qty": 1 },
+      { "id": "kreuzkuemmel", "qty": 1 },
+      { "id": "rapsoel", "qty": 5 },
+      { "id": "salz", "qty": 1 }
+    ],
+    "steps": [
+      "Fisch (gefroren geht direkt) im Rapsöl zugedeckt 8–10 Minuten braten. Mit Paprika, Kreuzkümmel und Salz würzen und in Stücke zerpflücken.",
+      "Joghurt mit Limettensaft und einer Prise Salz verrühren.",
+      "Salatherzen in feine Streifen, Tomate in Würfel schneiden.",
+      "Tortillas in einer trockenen Pfanne erwärmen.",
+      "Mit Salat, Fisch, Tomate und Limetten-Joghurt füllen."
+    ],
+    "tags": [],
+    "kcal": 490,
+    "protein": 38
+  },
+  {
+    "id": "lachs-poke-bowl",
+    "name": "Lachs-Poke-Bowl mit Edamame",
+    "cuisine": "asiatisch",
+    "base": "reis",
+    "prepMin": 10,
+    "cookMin": 15,
+    "ingredients": [
+      { "id": "lachs-tk", "qty": 100 },
+      { "id": "edamame-tk", "qty": 60 },
+      { "id": "reis", "qty": 60 },
+      { "id": "gurke", "qty": 100 },
+      { "id": "avocado", "qty": 0.25 },
+      { "id": "karotte", "qty": 40 },
+      { "id": "sojasauce", "qty": 15 },
+      { "id": "limette", "qty": 0.25 },
+      { "id": "fruehlingszwiebeln", "qty": 10 },
+      { "id": "rapsoel", "qty": 3 }
+    ],
+    "steps": [
+      "Reis nach Packungsangabe kochen und etwas abkühlen lassen.",
+      "Lachs im Rapsöl zugedeckt 8–10 Minuten braten (gefroren geht direkt) und in Stücke zerpflücken. Edamame 4 Minuten in kochendem Wasser garen.",
+      "Gurke würfeln, Karotte in feine Streifen, Avocado in Scheiben und Frühlingszwiebeln in Ringe schneiden.",
+      "Sojasauce mit Limettensaft verrühren.",
+      "Reis, Lachs, Edamame und Gemüse in einer Schüssel anrichten und mit der Sauce beträufeln."
+    ],
+    "tags": [],
+    "kcal": 620,
+    "protein": 35
+  },
+  {
+    "id": "linsenpasta-thon-rucola",
+    "name": "Linsen-Pasta mit Thon, Cherrytomaten & Rucola",
+    "cuisine": "italienisch",
+    "base": "pasta",
+    "prepMin": 5,
+    "cookMin": 12,
+    "ingredients": [
+      { "id": "linsen-pasta", "qty": 80 },
+      { "id": "thon", "qty": 80 },
+      { "id": "cherrytomaten", "qty": 120 },
+      { "id": "rucola", "qty": 20 },
+      { "id": "knoblauch", "qty": 3 },
+      { "id": "olivenoel", "qty": 10 },
+      { "id": "zitrone", "qty": 0.25 },
+      { "id": "chiliflocken", "qty": 0.3 },
+      { "id": "salz", "qty": 1 }
+    ],
+    "steps": [
+      "Linsen-Pasta in Salzwasser nach Packungsangabe kochen (meist 6–8 Minuten) und abgiessen.",
+      "Knoblauch in Scheiben schneiden, Cherrytomaten halbieren.",
+      "Knoblauch und Chiliflocken im Olivenöl kurz andünsten, Cherrytomaten 3 Minuten mitbraten.",
+      "Abgetropften Thon und Pasta dazugeben und mit Zitronensaft und Salz abschmecken.",
+      "Rucola unterheben und sofort servieren."
+    ],
+    "tags": [],
+    "kcal": 490,
+    "protein": 42
+  },
+  {
+    "id": "crevetten-vollkornspaghetti",
+    "name": "Crevetten-Zucchetti-Spaghetti (Vollkorn)",
+    "cuisine": "italienisch",
+    "base": "pasta",
+    "prepMin": 10,
+    "cookMin": 12,
+    "ingredients": [
+      { "id": "crevetten-tk", "qty": 120 },
+      { "id": "vollkorn-spaghetti", "qty": 70 },
+      { "id": "zucchetti", "qty": 150 },
+      { "id": "knoblauch", "qty": 5 },
+      { "id": "chiliflocken", "qty": 0.3 },
+      { "id": "olivenoel", "qty": 10 },
+      { "id": "zitrone", "qty": 0.25 },
+      { "id": "petersilie", "qty": 5 },
+      { "id": "salz", "qty": 2 }
+    ],
+    "steps": [
+      "Crevetten in einem Sieb unter kaltem Wasser auftauen lassen und trocken tupfen. Spaghetti in Salzwasser al dente kochen.",
+      "Zucchetti in feine Stifte schneiden, Knoblauch hacken.",
+      "Zucchetti im Olivenöl 3 Minuten braten, Crevetten, Knoblauch und Chiliflocken dazugeben und 2–3 Minuten braten, bis die Crevetten rosa sind.",
+      "Spaghetti mit etwas Kochwasser dazugeben und mit Zitronensaft, Petersilie und Salz abschmecken."
+    ],
+    "tags": [],
+    "kcal": 450,
+    "protein": 33
+  },
+  {
+    "id": "linsen-bolognese-rigatoni",
+    "name": "Linsen-Bolognese mit Rigatoni",
+    "cuisine": "italienisch",
+    "base": "pasta",
+    "prepMin": 5,
+    "cookMin": 25,
+    "ingredients": [
+      { "id": "rote-linsen", "qty": 50 },
+      { "id": "gehackte-tomaten", "qty": 200 },
+      { "id": "karotte", "qty": 50 },
+      { "id": "zwiebel", "qty": 40 },
+      { "id": "knoblauch", "qty": 3 },
+      { "id": "tomatenpueree", "qty": 10 },
+      { "id": "oregano", "qty": 0.5 },
+      { "id": "rigatoni", "qty": 60 },
+      { "id": "parmesan", "qty": 10 },
+      { "id": "olivenoel", "qty": 5 },
+      { "id": "salz", "qty": 2 }
+    ],
+    "steps": [
+      "Zwiebel, Knoblauch und Karotte fein hacken und im Olivenöl 3 Minuten andünsten.",
+      "Tomatenpüree kurz mitrösten, Linsen, gehackte Tomaten, Oregano und ca. 1,5 dl Wasser pro Person dazugeben.",
+      "Salzen und 15–18 Minuten köcheln, bis die Linsen weich sind.",
+      "Inzwischen Rigatoni in Salzwasser al dente kochen.",
+      "Mit der Linsen-Bolognese mischen und mit Parmesan servieren."
+    ],
+    "tags": ["vegetarisch", "meal-prep", "mitnehmen"],
+    "kcal": 560,
+    "protein": 27
+  },
+  {
+    "id": "edamame-nudelsalat-erdnuss",
+    "name": "Asiatischer Nudelsalat mit Edamame & Erdnusssauce",
+    "cuisine": "asiatisch",
+    "base": "nudeln",
+    "prepMin": 10,
+    "cookMin": 8,
+    "ingredients": [
+      { "id": "mie-nudeln", "qty": 60 },
+      { "id": "edamame-tk", "qty": 100 },
+      { "id": "karotte", "qty": 50 },
+      { "id": "gurke", "qty": 80 },
+      { "id": "erdnussbutter", "qty": 15 },
+      { "id": "sojasauce", "qty": 15 },
+      { "id": "limette", "qty": 0.25 },
+      { "id": "honig", "qty": 3 },
+      { "id": "fruehlingszwiebeln", "qty": 10 },
+      { "id": "chiliflocken", "qty": 0.3 }
+    ],
+    "steps": [
+      "Mie-Nudeln nach Packungsangabe kochen, Edamame die letzten 3 Minuten mitkochen und alles kalt abschrecken.",
+      "Erdnussbutter, Sojasauce, Limettensaft, Honig und 2 EL warmes Wasser pro Person glatt rühren.",
+      "Karotte und Gurke in feine Streifen, Frühlingszwiebeln in Ringe schneiden.",
+      "Alles mit der Sauce mischen und mit Chiliflocken bestreuen."
+    ],
+    "tags": ["vegetarisch", "meal-prep", "mitnehmen"],
+    "kcal": 490,
+    "protein": 25
+  },
+  {
+    "id": "eier-spinat-kichererbsen-pfanne",
+    "name": "Eier-Spinat-Pfanne mit Kichererbsen",
+    "cuisine": "orientalisch",
+    "base": "gemuese",
+    "prepMin": 5,
+    "cookMin": 15,
+    "ingredients": [
+      { "id": "ei", "qty": 3 },
+      { "id": "kichererbsen", "qty": 100 },
+      { "id": "spinat-tk", "qty": 120 },
+      { "id": "cherrytomaten", "qty": 80 },
+      { "id": "zwiebel", "qty": 30 },
+      { "id": "knoblauch", "qty": 3 },
+      { "id": "kreuzkuemmel", "qty": 1 },
+      { "id": "paprika", "qty": 1 },
+      { "id": "olivenoel", "qty": 5 },
+      { "id": "salz", "qty": 1 }
+    ],
+    "steps": [
+      "Zwiebel und Knoblauch hacken und im Olivenöl andünsten, Kreuzkümmel und Paprika kurz mitrösten.",
+      "Abgetropfte Kichererbsen und Spinat dazugeben und zugedeckt 5 Minuten garen, bis der Spinat aufgetaut ist. Salzen.",
+      "Cherrytomaten halbieren und dazugeben.",
+      "Mulden formen, Eier hineinschlagen und zugedeckt bei kleiner Hitze 5–6 Minuten stocken lassen."
+    ],
+    "tags": ["vegetarisch"],
+    "kcal": 470,
+    "protein": 33
+  },
+  {
+    "id": "ravioli-tomaten-spinat",
+    "name": "Ravioli in Tomaten-Spinat-Sauce",
+    "cuisine": "italienisch",
+    "base": "pasta",
+    "prepMin": 5,
+    "cookMin": 12,
+    "ingredients": [
+      { "id": "ravioli-fleisch", "qty": 150 },
+      { "id": "gehackte-tomaten", "qty": 150 },
+      { "id": "spinat-tk", "qty": 80 },
+      { "id": "halbrahm", "qty": 30 },
+      { "id": "knoblauch", "qty": 3 },
+      { "id": "basilikum", "qty": 3 },
+      { "id": "olivenoel", "qty": 5 },
+      { "id": "salz", "qty": 1 },
+      { "id": "pfeffer", "qty": 0.5 }
+    ],
+    "steps": [
+      "Knoblauch hacken und im Olivenöl andünsten, gehackte Tomaten und Spinat dazugeben und 6 Minuten köcheln.",
+      "Halbrahm dazugeben, salzen und pfeffern.",
+      "Inzwischen Ravioli in Salzwasser nach Packungsangabe garen (meist 3–4 Minuten) und abgiessen.",
+      "Ravioli vorsichtig mit der Sauce mischen und mit Basilikum servieren."
+    ],
+    "tags": [],
+    "kcal": 530,
+    "protein": 22
+  },
+  {
+    "id": "gemuese-frittata-quark",
+    "name": "Gemüse-Frittata mit Quark & Salat",
+    "cuisine": "international",
+    "base": "gemuese",
+    "prepMin": 10,
+    "cookMin": 15,
+    "ingredients": [
+      { "id": "ei", "qty": 3 },
+      { "id": "quark", "qty": 60 },
+      { "id": "zucchetti", "qty": 100 },
+      { "id": "peperoni", "qty": 80 },
+      { "id": "zwiebel", "qty": 30 },
+      { "id": "salatherzen", "qty": 80 },
+      { "id": "olivenoel", "qty": 8 },
+      { "id": "balsamico", "qty": 5 },
+      { "id": "salz", "qty": 1 },
+      { "id": "pfeffer", "qty": 0.5 }
+    ],
+    "steps": [
+      "Zucchetti, Peperoni und Zwiebel klein würfeln und in der Hälfte des Olivenöls in einer beschichteten Pfanne 5 Minuten braten.",
+      "Eier mit Quark, Salz und Pfeffer verquirlen, über das Gemüse giessen und zugedeckt bei kleiner Hitze 8–10 Minuten stocken lassen.",
+      "Salatherzen in Streifen schneiden und mit dem restlichen Öl, Balsamico und Salz anmachen.",
+      "Frittata in Stücke schneiden und mit dem Salat servieren."
+    ],
+    "tags": ["vegetarisch", "mitnehmen"],
+    "kcal": 420,
+    "protein": 32
   }
 ]

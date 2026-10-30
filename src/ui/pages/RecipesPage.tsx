@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
+import { isMeatMeal } from '../../core/recipes';
 import type { Recipe } from '../../core/types';
-import { BUILTIN_RECIPE_IDS } from '../../state/derive';
+import { BUILTIN_RECIPE_IDS, INGREDIENTS_BY_ID } from '../../state/derive';
 import { useStore } from '../../state/store';
 import { useRecipes } from '../hooks';
 import { Icon } from '../Icon';
@@ -15,11 +16,14 @@ export const CUISINE_LABEL: Record<Recipe['cuisine'], string> = {
   international: 'International',
 };
 
-type Filter = 'alle' | 'favoriten' | 'vegetarisch' | 'meal-prep' | 'mitnehmen' | 'ofen' | 'eigene' | 'nie';
+type Filter = 'alle' | 'favoriten' | 'fleisch' | 'protein' | 'leicht' | 'vegetarisch' | 'meal-prep' | 'mitnehmen' | 'ofen' | 'eigene' | 'nie';
 
 const FILTERS: { id: Filter; label: string }[] = [
   { id: 'alle', label: 'Alle' },
-  { id: 'favoriten', label: '★ Favoriten' },
+  { id: 'favoriten', label: '♥ Gefällt mir' },
+  { id: 'fleisch', label: 'Fleisch' },
+  { id: 'protein', label: 'Viel Protein (≥ 35 g)' },
+  { id: 'leicht', label: 'Leicht (≤ 550 kcal)' },
   { id: 'vegetarisch', label: 'Vegetarisch' },
   { id: 'meal-prep', label: 'Meal-Prep' },
   { id: 'mitnehmen', label: 'Zum Mitnehmen' },
@@ -45,6 +49,12 @@ export function RecipesPage() {
         switch (filter) {
           case 'favoriten':
             return favorites.includes(r.id);
+          case 'fleisch':
+            return isMeatMeal(r.ingredients, INGREDIENTS_BY_ID);
+          case 'protein':
+            return r.protein >= 35;
+          case 'leicht':
+            return r.kcal <= 550;
           case 'nie':
             return blocked.includes(r.id);
           case 'eigene':
@@ -85,7 +95,7 @@ export function RecipesPage() {
             <Link to={`/rezepte/${r.id}`} className="recipe-item">
               <span className="grow">
                 <span className="recipe-name">
-                  {favorites.includes(r.id) && <span className="star">★ </span>}
+                  {favorites.includes(r.id) && <span className="like-mark">♥ </span>}
                   {r.name}
                 </span>
                 <span className="tiny muted">

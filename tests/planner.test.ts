@@ -15,6 +15,10 @@ const settings: Settings = {
   leftoverLunches: 2,
   lunchToGo: false,
   noGo: [],
+  minMeatMeals: 3,
+  nutritionGoal: 'protein',
+  minFavorites: 2,
+  preferredPasta: '',
 };
 
 const input = (overrides: Partial<PlannerInput> = {}, s: Partial<Settings> = {}): PlannerInput => ({
@@ -44,7 +48,7 @@ const staplePantry: PlannerInput['pantry'] = INGREDIENTS.filter((i) => i.staple)
 }));
 
 function shoppingFor(result: ReturnType<typeof generatePlan>, pantry = [] as PlannerInput['pantry']) {
-  const needs = planNeeds(result.plan.slots, result.plan.persons, recipesById);
+  const needs = planNeeds(result.plan.slots, result.plan.persons, recipesById, ingredientsById);
   return computeShopping(needs, {
     ingredientsById,
     byIngredient,
@@ -160,8 +164,10 @@ describe('Planer', () => {
   });
 
   it('kostet mit Grundvorrat deutlich weniger', () => {
-    const empty = generatePlan(input()).total;
-    const stocked = generatePlan(input({ pantry: staplePantry })).total;
+    // Gleicher Plan, einmal ohne und einmal mit Grundvorrat einkaufen
+    const result = generatePlan(input());
+    const empty = shoppingFor(result).recommendation.total;
+    const stocked = shoppingFor(result, staplePantry).recommendation.total;
     expect(stocked).toBeLessThan(empty - 10);
   });
 
@@ -178,8 +184,8 @@ describe('Planer', () => {
 describe('Skalierung 1 → 2 Personen', () => {
   it('verdoppelt den Bedarf exakt', () => {
     const { plan } = generatePlan(input());
-    const one = planNeeds(plan.slots, 1, recipesById);
-    const two = planNeeds(plan.slots, 2, recipesById);
+    const one = planNeeds(plan.slots, 1, recipesById, ingredientsById);
+    const two = planNeeds(plan.slots, 2, recipesById, ingredientsById);
     for (const [id, qty] of one) expect(two.get(id)).toBeCloseTo(qty * 2, 6);
   });
 
@@ -200,7 +206,7 @@ describe('Skalierung 1 → 2 Personen', () => {
 describe('Vorräte', () => {
   it('Einkauf → volle Packungen in die Vorräte, Kochen zieht genau ab', () => {
     const { plan } = generatePlan(input());
-    const needs = planNeeds(plan.slots, 1, recipesById);
+    const needs = planNeeds(plan.slots, 1, recipesById, ingredientsById);
     const shopping = computeShopping(needs, {
       ingredientsById,
       byIngredient,
@@ -213,7 +219,7 @@ describe('Vorräte', () => {
     for (const [id, qty] of needs) expect(bought.get(id) ?? 0).toBeGreaterThanOrEqual(qty - 1e-6);
 
     // Alles kochen → übrig bleibt genau Packungsmenge minus Bedarf
-    for (const slot of plan.slots) pantry = cookSlot(pantry, slot, 1, recipesById);
+    for (const slot of plan.slots) pantry = cookSlot(pantry, slot, 1, recipesById, ingredientsById);
     const rest = pantryAvailable(pantry);
     for (const [id, qty] of needs) expect(rest.get(id) ?? 0).toBeCloseTo((bought.get(id) ?? 0) - qty, 3);
   });
@@ -228,9 +234,9 @@ describe('Vorräte', () => {
     }));
     const dinner = { day: 0, meal: 'abend' as const, recipeId: recipe.id, double: true, cooked: false };
     const lunch = { day: 1, meal: 'mittag' as const, recipeId: recipe.id, leftoverOf: 1, cooked: false };
-    const afterDinner = pantryAvailable(cookSlot(pantry, dinner, 1, recipesById));
+    const afterDinner = pantryAvailable(cookSlot(pantry, dinner, 1, recipesById, ingredientsById));
     for (const i of recipe.ingredients) expect(afterDinner.get(i.id)).toBeCloseTo(1000 - 2 * i.qty, 6);
-    const afterLunch = pantryAvailable(cookSlot(cookSlot(pantry, dinner, 1, recipesById), lunch, 1, recipesById));
+    const afterLunch = pantryAvailable(cookSlot(cookSlot(pantry, dinner, 1, recipesById, ingredientsById), lunch, 1, recipesById, ingredientsById));
     expect(afterLunch).toEqual(afterDinner);
   });
 
