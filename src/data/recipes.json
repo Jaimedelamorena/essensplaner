@@ -2228,5 +2228,153 @@
     "tags": ["vegetarisch", "mitnehmen"],
     "kcal": 420,
     "protein": 32
+  },
+  {
+    "id": "poulet-champignon-tagliatelle-trueffel",
+    "name": "Poulet-Champignon-Tagliatelle mit Trüffelöl",
+    "cuisine": "italienisch",
+    "base": "pasta",
+    "prepMin": 10,
+    "cookMin": 15,
+    "ingredients": [
+      { "id": "pouletbrust", "qty": 150 },
+      { "id": "tagliatelle", "qty": 70 },
+      { "id": "champignons", "qty": 150 },
+      { "id": "knoblauch", "qty": 5 },
+      { "id": "halbrahm", "qty": 30 },
+      { "id": "parmesan", "qty": 10 },
+      { "id": "petersilie", "qty": 5 },
+      { "id": "olivenoel", "qty": 5 },
+      { "id": "trueffeloel", "qty": 5 },
+      { "id": "salz", "qty": 2 },
+      { "id": "pfeffer", "qty": 0.5 }
+    ],
+    "steps": [
+      "Tagliatelle nach Packungsangabe in Salzwasser kochen und etwas Kochwasser aufheben.",
+      "Poulet in Streifen schneiden, im Olivenöl 5 Minuten goldbraun braten, salzen und aus der Pfanne nehmen.",
+      "Champignons in Scheiben schneiden und mit dem gehackten Knoblauch 5 Minuten braten. Halbrahm und 3 EL Kochwasser dazugeben.",
+      "Poulet und Tagliatelle untermischen und kurz erwärmen. Pfanne vom Herd nehmen.",
+      "Mit Parmesan, Petersilie und Pfeffer anrichten und erst jetzt das Trüffelöl darüberträufeln."
+    ],
+    "tags": [],
+    "kcal": 660,
+    "protein": 53
+  },
+  {
+    "id": "rindsgeschnetzeltes-trueffelstampf",
+    "name": "Rindsgeschnetzeltes mit Trüffel-Kartoffelstampf",
+    "cuisine": "schweizerisch",
+    "base": "kartoffeln",
+    "prepMin": 10,
+    "cookMin": 20,
+    "ingredients": [
+      { "id": "rindsgeschnetzeltes", "qty": 140 },
+      { "id": "kartoffel", "qty": 220 },
+      { "id": "milch", "qty": 40 },
+      { "id": "champignons", "qty": 100 },
+      { "id": "zwiebel", "qty": 30 },
+      { "id": "rucola", "qty": 30 },
+      { "id": "petersilie", "qty": 5 },
+      { "id": "rapsoel", "qty": 5 },
+      { "id": "trueffeloel", "qty": 5 },
+      { "id": "salz", "qty": 2 },
+      { "id": "pfeffer", "qty": 0.5 }
+    ],
+    "steps": [
+      "Kartoffeln schälen, würfeln und in Salzwasser 15 Minuten weich kochen.",
+      "Zwiebel und Champignons klein schneiden und im Rapsöl 5 Minuten braten. Aus der Pfanne nehmen.",
+      "Fleisch in derselben Pfanne bei starker Hitze 2–3 Minuten scharf anbraten, Gemüse wieder dazugeben, salzen und pfeffern.",
+      "Kartoffeln abgiessen, mit der warmen Milch stampfen und abschmecken. Vom Herd nehmen und das Trüffelöl unterrühren.",
+      "Stampf mit Geschnetzeltem, Rucola und Petersilie anrichten."
+    ],
+    "tags": [],
+    "kcal": 490,
+    "protein": 41
+  },
+  {
+    "id": "crevetten-champignon-risotto-trueffel",
+    "name": "Crevetten-Champignon-Risotto mit Trüffelöl",
+    "cuisine": "italienisch",
+    "base": "reis",
+    "prepMin": 5,
+    "cookMin": 25,
+    "ingredients": [
+      { "id": "risottoreis", "qty": 70 },
+      { "id": "crevetten-tk", "qty": 150 },
+      { "id": "champignons", "qty": 150 },
+      { "id": "zwiebel", "qty": 30 },
+      { "id": "gemuesebouillon", "qty": 5 },
+      { "id": "parmesan", "qty": 15 },
+      { "id": "petersilie", "qty": 5 },
+      { "id": "olivenoel", "qty": 5 },
+      { "id": "trueffeloel", "qty": 5 },
+      { "id": "salz", "qty": 1 },
+      { "id": "pfeffer", "qty": 0.5 }
+    ],
+    "steps": [
+      "Crevetten in kaltem Wasser auftauen. Bouillon mit 350 ml heissem Wasser anrühren.",
+      "Zwiebel fein hacken, Champignons in Scheiben schneiden und im Olivenöl 3 Minuten braten. Risottoreis kurz mitrösten.",
+      "Nach und nach Bouillon zugeben und unter Rühren etwa 18 Minuten köcheln, bis der Reis cremig und bissfest ist.",
+      "Crevetten abtropfen, untermischen und 3 Minuten mitgaren, bis sie rosa sind.",
+      "Vom Herd nehmen, Parmesan und Petersilie unterrühren, pfeffern und mit Trüffelöl beträufeln."
+    ],
+    "tags": [],
+    "kcal": 560,
+    "protein": 41
+  },
+  {
+    "id": "trueffel-ruehrei-spinat-baguette",
+    "name": "Trüffel-Rührei mit Spinat auf Baguette",
+    "cuisine": "international",
+    "base": "brot",
+    "prepMin": 5,
+    "cookMin": 10,
+    "ingredients": [
+      { "id": "ei", "qty": 3 },
+      { "id": "quark", "qty": 40 },
+      { "id": "spinat-tk", "qty": 100 },
+      { "id": "champignons", "qty": 80 },
+      { "id": "baguette", "qty": 60 },
+      { "id": "butter", "qty": 5 },
+      { "id": "trueffeloel", "qty": 4 },
+      { "id": "salz", "qty": 1 },
+      { "id": "pfeffer", "qty": 0.5 }
+    ],
+    "steps": [
+      "Spinat auftauen oder in der Mikrowelle 2 Minuten erwärmen und gut ausdrücken. Baguette in Scheiben schneiden und toasten.",
+      "Champignons in Scheiben schneiden und in der Butter 4 Minuten braten. Spinat kurz mitbraten.",
+      "Eier mit Quark, Salz und Pfeffer verquirlen, in die Pfanne geben und bei kleiner Hitze langsam stocken lassen, dabei sanft rühren.",
+      "Rührei auf das Baguette geben und zum Schluss mit Trüffelöl beträufeln."
+    ],
+    "tags": ["vegetarisch"],
+    "kcal": 540,
+    "protein": 36
+  },
+  {
+    "id": "trueffel-pizza-champignons-rucola",
+    "name": "Trüffel-Pizza mit Mozzarella, Champignons & Rucola",
+    "cuisine": "italienisch",
+    "base": "pizza",
+    "prepMin": 8,
+    "cookMin": 15,
+    "ingredients": [
+      { "id": "pizzateig", "qty": 125 },
+      { "id": "mozzarella", "qty": 90 },
+      { "id": "champignons", "qty": 120 },
+      { "id": "rucola", "qty": 25 },
+      { "id": "olivenoel", "qty": 3 },
+      { "id": "trueffeloel", "qty": 5 },
+      { "id": "salz", "qty": 1 },
+      { "id": "pfeffer", "qty": 0.5 }
+    ],
+    "steps": [
+      "Backofen auf 230 °C Umluft vorheizen. Pizzateig auf ein mit Backpapier belegtes Blech legen.",
+      "Mozzarella zerzupfen und Champignons in dünne Scheiben schneiden. Beides auf dem Teig verteilen, mit Olivenöl beträufeln, salzen und pfeffern.",
+      "Auf der untersten Rille 12–15 Minuten backen, bis der Rand goldbraun ist.",
+      "Rucola darauf verteilen und zum Schluss das Trüffelöl darüberträufeln."
+    ],
+    "tags": ["vegetarisch", "ofen"],
+    "kcal": 670,
+    "protein": 29
   }
 ]
