@@ -1,6 +1,6 @@
 import { pantryAvailable, pantryExpiringSoon } from '../pantry';
 import { groupByIngredient } from '../pricing';
-import { SLOTS_PER_WEEK } from '../plan';
+import { cooksFresh, SLOTS_PER_WEEK } from '../plan';
 import { effectiveIngredients, pastaSwap } from '../recipes';
 import type { Ingredient, MealType, PantryItem, Product, Recipe, Settings, Slot, WeekPlan } from '../types';
 import { createUnitPrices, evaluate, type Evaluation, type PlannerContext } from './evaluate';
@@ -113,7 +113,8 @@ export function place(
   const next = [...slots];
   const day = Math.floor(index / 2);
   const old = slots[index];
-  if (old?.double && next[index + 1]?.leftoverOf === index) next[index + 1] = null;
+  const oldLeftover = old?.double && next[index + 1]?.leftoverOf === index ? next[index + 1] : null;
+  if (oldLeftover) next[index + 1] = null;
   const extra = { ...(double ? { double: true } : {}), ...(swaps ? { swaps } : {}) };
   next[index] = { day, meal: mealOf(index), recipeId, cooked: false, ...extra };
   if (double && index + 1 < SLOTS_PER_WEEK) {
@@ -124,6 +125,8 @@ export function place(
       leftoverOf: index,
       cooked: false,
       ...(swaps ? { swaps } : {}),
+      // Ein ausgefallener Reste-Mittag bleibt ausgefallen.
+      ...(oldLeftover?.skipped ? { skipped: true } : {}),
     };
   }
   return next;
@@ -134,8 +137,9 @@ export function defaultSwaps(recipe: Recipe, settings: Settings, ingredientsById
   return pastaSwap(recipe, settings.preferredPasta || undefined, ingredientsById);
 }
 
+/** Wird das Rezept schon in einem anderen Slot gekocht? Ausgefallene Mahlzeiten zählen nicht. */
 const usedElsewhere = (slots: Slots, recipeId: string, except: number) =>
-  slots.some((s, i) => s && i !== except && s.leftoverOf === undefined && s.recipeId === recipeId);
+  slots.some((s, i) => s && i !== except && s.recipeId === recipeId && cooksFresh(slots, i));
 
 function candidatesFor(pool: Recipe[], slots: Slots, index: number, double: boolean, settings: Settings): Recipe[] {
   const meal = mealOf(index);
@@ -192,7 +196,7 @@ class Search {
     const isDoubleDinner = (index: number) => mealOf(index) === 'abend' && doubles.has(Math.floor(index / 2));
     const isLeftoverLunch = (index: number) => mealOf(index) === 'mittag' && doubles.has(Math.floor(index / 2) - 1);
 
-    const placed = this.slots.filter((s) => s && s.leftoverOf === undefined && this.ctx.favorites.has(s.recipeId)).length;
+    const placed = this.slots.filter((s, i) => s && cooksFresh(this.slots, i) && this.ctx.favorites.has(s.recipeId)).length;
     const due = (r: Recipe) => (this.ctx.favoriteBonus.get(r.id) ?? 0) + (this.ctx.jitter.get(r.id) ?? 0);
     const favorites = this.pool
       .filter((r) => this.ctx.favorites.has(r.id) && !usedElsewhere(this.slots, r.id, -1))
@@ -430,16 +434,28 @@ export function swapSlot(plan: WeekPlan, index: number, recipe: Recipe, swaps?: 
   }
   slots = place(slots, index, recipe.id, !!slot.double && recipe.tags.includes('meal-prep'), swaps);
   slots[index] = { ...slots[index]!, locked: true };
+  // Kein Meal-Prep-Rezept mehr am doppelten Abend: der Mittag danach wird eigenständig statt leer.
+  const oldLunch = plan.slots[index + 1];
+  if (slot.double && oldLunch?.leftoverOf === index && !slots[index + 1]) {
+    slots[index + 1] = { ...oldLunch, leftoverOf: undefined };
+  }
   return { ...plan, slots: slots as Slot[] };
 }
 
-/** Slots, die beim Neuberechnen erhalten bleiben: gekocht oder von Hand gewählt (inkl. Reste-Partner). */
+/**
+ * Slots, die beim Neuberechnen erhalten bleiben: gekocht oder von Hand gewählt (inkl. Reste-Partner)
+ * sowie ausgefallene Mahlzeiten.
+ */
 export function keptSlots(plan: WeekPlan, keepLocked: boolean): Slots {
   const kept: Slots = plan.slots.map((s) => (s.cooked || (keepLocked && s.locked) ? s : null));
   plan.slots.forEach((s, i) => {
     if (!kept[i]) return;
     if (s.leftoverOf !== undefined) kept[s.leftoverOf] = plan.slots[s.leftoverOf];
     if (s.double && plan.slots[i + 1]?.leftoverOf === i) kept[i + 1] = plan.slots[i + 1];
+  });
+  // Ausgefallen bleibt ausgefallen – ohne Reste-Verknüpfung, denn der Partner wird neu geplant.
+  plan.slots.forEach((s, i) => {
+    if (!kept[i] && s.skipped) kept[i] = { ...s, double: undefined, leftoverOf: undefined, locked: undefined };
   });
   return kept;
 }

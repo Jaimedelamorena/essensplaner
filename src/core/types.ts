@@ -191,6 +191,10 @@ export interface Slot {
   /** Ausgetauschte Zutaten dieses Slots, z. B. { spaghetti: 'farfalle' }. */
   swaps?: Record<string, string>;
   cooked: boolean;
+  /** Fällt aus (z. B. auswärts essen): nichts einkaufen, nichts von den Vorräten abziehen. */
+  skipped?: boolean;
+  /** Beim Abhaken tatsächlich gekochte Portionen – damit «rückgängig» genau das zurückbucht. */
+  cookedPortions?: number;
 }
 
 export interface WeekPlan {

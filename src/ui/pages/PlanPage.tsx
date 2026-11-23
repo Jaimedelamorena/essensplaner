@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { addDays, formatDate, todayISO, WEEKDAYS, weekdayOf } from '../../core/dates';
+import { cooksFresh } from '../../core/plan';
 import { alternativesForSlot } from '../../core/planner/generate';
 import { effectiveIngredients, isMeatMeal, nutritionFor, pastaIngredientOf, pastaTypes } from '../../core/recipes';
 import type { Persons, Recipe, Slot, WeekPlan } from '../../core/types';
@@ -30,17 +31,28 @@ function planStats(plan: WeekPlan, recipesById: Map<string, Recipe>, favorites: 
   let protein = 0;
   let count = 0;
   let favs = 0;
-  for (const slot of plan.slots) {
+  let skipped = 0;
+  plan.slots.forEach((slot, index) => {
+    if (slot.skipped) {
+      skipped++;
+      return;
+    }
     const recipe = recipesById.get(slot.recipeId);
-    if (!recipe) continue;
+    if (!recipe) return;
     const info = slotInfo(slot, recipe);
     if (info.meat) meat++;
     kcal += info.kcal;
     protein += info.protein;
     count++;
-    if (slot.leftoverOf === undefined && favorites.includes(recipe.id)) favs++;
-  }
-  return { meat, kcal: Math.round(kcal / Math.max(1, count)), protein: Math.round(protein / Math.max(1, count)), favorites: favs };
+    if (cooksFresh(plan.slots, index) && favorites.includes(recipe.id)) favs++;
+  });
+  return {
+    meat,
+    kcal: Math.round(kcal / Math.max(1, count)),
+    protein: Math.round(protein / Math.max(1, count)),
+    favorites: favs,
+    skipped,
+  };
 }
 
 /** Kurz warten, damit der Lade-Hinweis sichtbar wird, bevor der Planer rechnet. */
@@ -181,6 +193,11 @@ export function PlanPage() {
                       Ø {stats.protein} g Protein · {stats.kcal} kcal pro Mahlzeit
                     </span>
                     {favorites.length > 0 && <span className="badge good">♥ {stats.favorites}× Lieblingsrezept</span>}
+                    {stats.skipped > 0 && (
+                      <span className="badge">
+                        {stats.skipped} Mahlzeit{stats.skipped === 1 ? ' fällt' : 'en fallen'} aus
+                      </span>
+                    )}
                   </div>
                 )}
               </div>
@@ -225,7 +242,8 @@ export function PlanPage() {
               </button>
             </div>
             <p className="tiny muted no-margin">
-              «Neu berechnen» behält gekochte und von Hand getauschte Mahlzeiten und berücksichtigt deine aktuellen Vorräte.
+              «Neu berechnen» behält gekochte, ausgefallene und von Hand getauschte Mahlzeiten und berücksichtigt deine
+              aktuellen Vorräte. Isst du einmal nicht zu Hause, tippe bei der Mahlzeit auf «Fällt aus».
             </p>
           </section>
 
@@ -241,7 +259,7 @@ export function PlanPage() {
               key={day}
               day={day}
               date={addDays(plan.weekStart, day)}
-              slots={[plan.slots[day * 2], plan.slots[day * 2 + 1]]}
+              allSlots={plan.slots}
               recipesById={recipesById}
               onSwap={setSwapIndex}
             />
@@ -257,26 +275,32 @@ export function PlanPage() {
 function DayCard({
   day,
   date,
-  slots,
+  allSlots,
   recipesById,
   onSwap,
 }: {
   day: number;
   date: string;
-  slots: Slot[];
+  allSlots: Slot[];
   recipesById: Map<string, Recipe>;
   onSwap: (index: number) => void;
 }) {
+  const setSkipped = useStore((s) => s.setSkipped);
   const isToday = date === todayISO();
+  const indices = [day * 2, day * 2 + 1];
+  const slots = indices.map((i) => allSlots[i]);
   const total = slots.reduce(
     (sum, slot) => {
       const recipe = recipesById.get(slot.recipeId);
-      if (!recipe) return sum;
+      if (!recipe || slot.skipped) return sum;
       const info = slotInfo(slot, recipe);
       return { kcal: sum.kcal + info.kcal, protein: sum.protein + info.protein };
     },
     { kcal: 0, protein: 0 },
   );
+  // Nur noch offene (nicht gekochte) Mahlzeiten können ausfallen.
+  const open = indices.filter((i) => !allSlots[i].cooked);
+  const allSkipped = slots.every((s) => s.skipped);
   return (
     <section className={`card day ${isToday ? 'today' : ''}`}>
       <div className="row between baseline wrap">
@@ -285,12 +309,28 @@ function DayCard({
           {isToday && <span className="badge good">heute</span>}
         </h3>
         <span className="tiny muted tabular">
-          {Math.round(total.kcal)} kcal · {Math.round(total.protein)} g Protein
+          {allSkipped ? 'nicht zu Hause' : `${Math.round(total.kcal)} kcal · ${Math.round(total.protein)} g Protein`}
         </span>
       </div>
       {slots.map((slot, k) => (
-        <MealRow key={k} index={day * 2 + k} slot={slot} recipe={recipesById.get(slot.recipeId)} onSwap={onSwap} />
+        <MealRow
+          key={k}
+          index={indices[k]}
+          slot={slot}
+          allSlots={allSlots}
+          recipe={recipesById.get(slot.recipeId)}
+          onSwap={onSwap}
+        />
       ))}
+      {open.length === 2 && (
+        <button
+          className="skip-day"
+          onClick={() => setSkipped(open, !allSkipped)}
+          aria-label={allSkipped ? `${WEEKDAYS[weekdayOf(date)]} wieder einplanen` : `Ganzer ${WEEKDAYS[weekdayOf(date)]} fällt aus`}
+        >
+          {allSkipped ? 'Ganzen Tag wieder einplanen' : 'Ganzer Tag fällt aus'}
+        </button>
+      )}
     </section>
   );
 }
@@ -298,11 +338,13 @@ function DayCard({
 function MealRow({
   index,
   slot,
+  allSlots,
   recipe,
   onSwap,
 }: {
   index: number;
   slot: Slot;
+  allSlots: Slot[];
   recipe?: Recipe;
   onSwap: (index: number) => void;
 }) {
@@ -310,8 +352,35 @@ function MealRow({
   const toggleCooked = useStore((s) => s.toggleCooked);
   const toggleFavorite = useStore((s) => s.toggleFavorite);
   const setPasta = useStore((s) => s.setPasta);
+  const setSkipped = useStore((s) => s.setSkipped);
   if (!recipe) return null;
-  const leftover = slot.leftoverOf !== undefined;
+  const mealLabel = slot.meal === 'mittag' ? 'Mittag' : 'Abend';
+
+  if (slot.skipped) {
+    return (
+      <div className="meal skipped">
+        <span className="check skip-mark" aria-hidden="true">
+          <Icon name="ban" size={18} />
+        </span>
+        <div className="grow">
+          <div className="tiny muted">{mealLabel} · fällt aus</div>
+          <span className="meal-title">{recipe.name}</span>
+          <div className="small muted">Wird nicht eingekauft, deine Vorräte bleiben, wie sie sind.</div>
+          <div className="badges">
+            <button className="badge-btn" onClick={() => setSkipped([index], false)}>
+              <Icon name="refresh" size={14} /> Wieder einplanen
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Fällt das doppelte Abendessen aus, wird der Reste-Mittag frisch gekocht.
+  const leftover = slot.leftoverOf !== undefined && !cooksFresh(allSlots, index);
+  const freshInsteadOfLeftover = slot.leftoverOf !== undefined && !leftover;
+  const next = allSlots[index + 1];
+  const cooksDouble = !!slot.double && !(next?.leftoverOf === index && next.skipped);
   const info = slotInfo(slot, recipe);
   const liked = favorites.includes(recipe.id);
   const originalPasta = pastaIngredientOf(recipe, INGREDIENTS_BY_ID);
@@ -320,14 +389,14 @@ function MealRow({
     <div className={`meal ${slot.cooked ? 'done' : ''}`}>
       <Checkbox checked={slot.cooked} onChange={() => toggleCooked(index)} label={`${recipe.name} als gekocht markieren`} />
       <div className="grow">
-        <div className="tiny muted">{slot.meal === 'mittag' ? 'Mittag' : 'Abend'}</div>
+        <div className="tiny muted">{mealLabel}</div>
         <Link to={`/rezepte/${recipe.id}`} className="meal-title">
           {recipe.name}
         </Link>
         <div className="small muted">
           {leftover
             ? 'Reste vom Vorabend – nur aufwärmen'
-            : `${recipe.prepMin + recipe.cookMin} Min · ${info.kcal} kcal · ${info.protein} g Protein`}
+            : `${freshInsteadOfLeftover ? 'Frisch kochen, das Abendessen davor fällt aus · ' : ''}${recipe.prepMin + recipe.cookMin} Min · ${info.kcal} kcal · ${info.protein} g Protein`}
         </div>
         {currentPasta && !leftover && (
           <label className="pasta-pick">
@@ -347,11 +416,20 @@ function MealRow({
           </label>
         )}
         <div className="badges">
-          {slot.double && <span className="badge info">doppelt kochen → Mittag morgen</span>}
+          {cooksDouble && <span className="badge info">doppelt kochen → Mittag morgen</span>}
           {leftover && <span className="badge info">Reste</span>}
           {info.meat && <span className="badge">Fleisch</span>}
           {recipe.tags.includes('vegetarisch') && <span className="badge">vegi</span>}
           {slot.locked && <span className="badge">fixiert</span>}
+          {!slot.cooked && (
+            <button
+              className="badge-btn"
+              onClick={() => setSkipped([index], true)}
+              aria-label={`${mealLabel}: ${recipe.name} fällt aus`}
+            >
+              <Icon name="ban" size={14} /> Fällt aus
+            </button>
+          )}
         </div>
       </div>
       <div className="meal-actions">

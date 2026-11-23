@@ -2,7 +2,7 @@
 import { todayISO } from '../core/dates';
 import { estimateNutrition } from '../core/nutrition';
 import { pantryAvailable } from '../core/pantry';
-import { costSummary, planNeeds } from '../core/plan';
+import { costSummary, eatenMeals, planNeeds } from '../core/plan';
 import type { PlannerInput } from '../core/planner/generate';
 import { applyOverrides, groupByIngredient } from '../core/pricing';
 import { computeShopping, totalFor, type ShoppingMode, type ShoppingResult } from '../core/shopping';
@@ -74,7 +74,7 @@ export function planCost(state: AppState, shopping: ShoppingResult | null, mode?
   const spent = state.plan.shopping?.total ?? 0;
   const remaining = mode ? totalFor(shopping, mode) : shopping.recommendation.total;
   const total = Math.round((spent + remaining) * 100) / 100;
-  const summary = costSummary(total, state.plan.persons);
+  const summary = costSummary(total, state.plan.persons, eatenMeals(state.plan.slots));
   return { spent, remaining, ...summary, overBudget: total > state.settings.budget + 1e-9 };
 }
 

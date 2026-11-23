@@ -658,6 +658,58 @@ input[type='checkbox'] {
   text-decoration: line-through;
   color: var(--muted);
 }
+.meal.skipped .meal-title {
+  text-decoration: line-through;
+  color: var(--muted);
+}
+.check.skip-mark {
+  color: var(--muted);
+  background: var(--surface-2);
+  border-style: dashed;
+  cursor: default;
+  margin-top: 14px;
+}
+.badge-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 30px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--muted);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.badge-btn:hover {
+  color: var(--text);
+  border-color: var(--muted);
+}
+.skip-day {
+  display: block;
+  margin: 6px 0 0 auto;
+  min-height: 36px;
+  padding: 0 4px;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.skip-day:hover {
+  color: var(--text);
+}
+.badge-btn:focus-visible,
+.skip-day:focus-visible {
+  outline: 3px solid var(--primary);
+  outline-offset: 2px;
+}
 .meal-actions {
   display: flex;
   flex-direction: column;

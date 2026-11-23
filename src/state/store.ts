@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { createJSONStorage, persist, type StateStorage } from 'zustand/middleware';
 import { nextShoppingDay, todayISO } from '../core/dates';
 import { addToPantry, newId } from '../core/pantry';
-import { cookSlot, planRecipeIds, purchaseToPantry, uncookSlot } from '../core/plan';
+import { cookSlot, planRecipeIds, portionsAt, purchaseToPantry, uncookSlot } from '../core/plan';
 import { defaultSwaps, generatePlan, keptSlots, swapSlot } from '../core/planner/generate';
 import { pastaSwap } from '../core/recipes';
 import { totalFor, type ShoppingMode } from '../core/shopping';
@@ -52,6 +52,8 @@ interface Actions {
   /** Pasta-Sorte eines Pasta-Gerichts im Plan ändern (gilt auch für dessen Reste). */
   setPasta(index: number, pastaId: string): void;
   toggleCooked(index: number): void;
+  /** Mahlzeiten ausfallen lassen bzw. wieder einplanen – ohne die Vorräte anzutasten. */
+  setSkipped(indices: number[], skipped: boolean): void;
   setPersons(persons: Persons): void;
   completeShopping(mode: ShoppingMode): void;
   updateSettings(partial: Partial<Settings>): void;
@@ -199,14 +201,39 @@ export const useStore = create<Store>()(
 
       toggleCooked: (index) => {
         const { plan, pantry, userRecipes } = get();
-        if (!plan) return;
-        const slot = plan.slots[index];
+        const slot = plan?.slots[index];
+        if (!plan || !slot || slot.skipped) return;
         const recipesById = new Map(mergedRecipes(userRecipes).map((r) => [r.id, r]));
-        const nextPantry = slot.cooked
-          ? uncookSlot(pantry, slot, plan.persons, recipesById, INGREDIENTS_BY_ID)
-          : cookSlot(pantry, slot, plan.persons, recipesById, INGREDIENTS_BY_ID);
-        const slots = plan.slots.map((s, i) => (i === index ? { ...s, cooked: !s.cooked } : s));
+        if (slot.cooked) {
+          const nextPantry = uncookSlot(pantry, slot, plan.persons, recipesById, INGREDIENTS_BY_ID);
+          const slots = plan.slots.map((s, i) => (i === index ? { ...s, cooked: false, cookedPortions: undefined } : s));
+          set({ plan: { ...plan, slots }, pantry: nextPantry });
+          return;
+        }
+        const portions = portionsAt(plan.slots, index, plan.persons);
+        const nextPantry = cookSlot(pantry, slot, plan.persons, recipesById, INGREDIENTS_BY_ID, portions);
+        const slots = plan.slots.map((s, i) => (i === index ? { ...s, cooked: true, cookedPortions: portions } : s));
         set({ plan: { ...plan, slots }, pantry: nextPantry });
+      },
+
+      setSkipped: (indices, skipped) => {
+        const { plan } = get();
+        if (!plan) return;
+        const slots = [...plan.slots];
+        for (const index of indices) {
+          const slot = slots[index];
+          // Gekochtes kann nicht mehr ausfallen; die Vorräte bleiben in jedem Fall unangetastet.
+          if (!slot || slot.cooked) continue;
+          slots[index] = { ...slot, skipped: skipped || undefined };
+          // Doppeltes Abendessen wieder einplanen, dessen Mittag inzwischen frisch gekocht wurde:
+          // Abendessen nur noch einfach, der Mittag bleibt eigenständig.
+          const next = slots[index + 1];
+          if (!skipped && slot.double && next?.leftoverOf === index && next.cooked) {
+            slots[index] = { ...slots[index], double: undefined };
+            slots[index + 1] = { ...next, leftoverOf: undefined };
+          }
+        }
+        set({ plan: { ...plan, slots } });
       },
 
       setPersons: (persons) => {

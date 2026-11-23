@@ -1,5 +1,5 @@
 import { bestPacks, cheapestUnitPrice, productsFor, round2 } from '../pricing';
-import { portionsFor } from '../plan';
+import { cooksFresh, portionsAt } from '../plan';
 import { effectiveIngredients, isMeatMeal, nutritionFor } from '../recipes';
 import type { Ingredient, NutritionGoal, Persons, Product, Recipe, Slot, Store } from '../types';
 
@@ -112,9 +112,15 @@ export function evaluate(slots: (Slot | null)[], ctx: PlannerContext, costs?: Ma
   let empty = 0;
   let prev: Recipe | null = null;
 
-  for (const slot of slots) {
+  for (let index = 0; index < slots.length; index++) {
+    const slot = slots[index];
     if (!slot) {
       empty++;
+      prev = null;
+      continue;
+    }
+    // Ausgefallene Mahlzeit: kostet nichts und zählt für keine Ziele.
+    if (slot.skipped) {
       prev = null;
       continue;
     }
@@ -123,7 +129,7 @@ export function evaluate(slots: (Slot | null)[], ctx: PlannerContext, costs?: Ma
     const info = slotInfo(ctx, recipe, slot.swaps);
     if (info.meat) meatMeals++;
 
-    if (slot.leftoverOf === undefined) {
+    if (cooksFresh(slots, index)) {
       if (usedRecipes.has(recipe.id)) violations++;
       usedRecipes.add(recipe.id);
       if (ctx.favorites.has(recipe.id)) {
@@ -140,7 +146,7 @@ export function evaluate(slots: (Slot | null)[], ctx: PlannerContext, costs?: Ma
         if (prev.base === recipe.base) bonus -= WEIGHTS.sameBaseInARow;
         if (prev.cuisine === recipe.cuisine) bonus -= WEIGHTS.sameCuisineInARow;
       }
-      const portions = slot.cooked ? 0 : portionsFor(slot, ctx.persons);
+      const portions = slot.cooked ? 0 : portionsAt(slots, index, ctx.persons);
       for (const { id, qty } of effectiveIngredients(recipe, slot.swaps, ctx.ingredientsById)) {
         const ing = ctx.ingredientsById.get(id);
         if (ing?.category === 'fleisch-fisch') bonus -= WEIGHTS.meatPerDay * slot.day;
